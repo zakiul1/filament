@@ -5,11 +5,14 @@ namespace Database\Seeders;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use App\Models\CompanySetting;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
+        // Create roles
         $superAdmin = Role::firstOrCreate(
             ['name' => 'SUPER_ADMIN'],
             ['label' => 'Super Administrator']
@@ -20,14 +23,22 @@ class RoleSeeder extends Seeder
             ['label' => 'Administrator']
         );
 
-        // Attach SUPER_ADMIN to first user (adjust logic as you like)
-        $firstUser = User::first();
-        if ($firstUser && !$firstUser->roles()->where('name', 'SUPER_ADMIN')->exists()) {
-            $firstUser->roles()->attach($superAdmin->id);
+        // Create default Super Admin user
+        $user = User::firstOrCreate(
+            ['email' => 'admin@siatex.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
+
+        // Attach SUPER_ADMIN role if not attached
+        if (!$user->roles()->where('name', 'SUPER_ADMIN')->exists()) {
+            $user->roles()->attach($superAdmin->id);
         }
 
         // Ensure company settings row exists
-        \App\Models\CompanySetting::firstOrCreate([], [
+        CompanySetting::firstOrCreate([], [
             'name' => 'Siatex (BD) Ltd.',
             'base_currency_code' => 'USD',
         ]);

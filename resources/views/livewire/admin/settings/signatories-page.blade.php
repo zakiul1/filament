@@ -1,5 +1,5 @@
-<div class="max-w-5xl mx-auto py-8">
-    <h1 class="text-2xl font-bold mb-4">Signatories</h1>
-
+<x-admin.system-layout :title="__('Signatories')">
     {{ $this->table }}
-</div>
+
+    <x-filament-actions::modals />
+</x-admin.system-layout>

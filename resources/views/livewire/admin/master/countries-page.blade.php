@@ -1,4 +1,4 @@
-<x-admin.system-layout :title="__('Document Sign Settings')">
+<x-admin.system-layout :title="__('Countries')">
     {{ $this->table }}
 
     <x-filament-actions::modals />

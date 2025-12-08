@@ -1,5 +1,3 @@
-<div class="max-w-6xl mx-auto py-8">
-    <h1 class="text-2xl font-bold mb-4">Users</h1>
-
+<x-admin.system-layout :title="__('Users')">
     {{ $this->table }}
-</div>
+</x-admin.system-layout>

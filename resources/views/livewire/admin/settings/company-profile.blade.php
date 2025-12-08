@@ -1,20 +1,17 @@
-<div class="max-w-3xl mx-auto py-8">
-    <h1 class="text-2xl font-bold mb-4">Company Profile</h1>
-
+<x-admin.system-layout :title="__('Company Settings')">
     <form wire:submit="save" class="space-y-6">
         {{ $this->form }}
 
-        <button type="submit">
-            Save
-        </button>
+        <x-primary-button type="submit" class="">
+            {{ __('Save') }}
+        </x-primary-button>
     </form>
 
     @if (session('status'))
-        <div class="mt-4 text-sm text-green-600">
+        <p class="mt-4 text-sm text-green-600">
             {{ session('status') }}
-        </div>
+        </p>
     @endif
 
-    {{-- Needed for Filament action/file-upload modals --}}
     <x-filament-actions::modals />
-</div>
+</x-admin.system-layout>

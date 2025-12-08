@@ -10,18 +10,20 @@ use App\Livewire\Admin\Settings\CompanyProfile;
 use App\Livewire\Admin\Settings\SignatoriesPage;
 use App\Livewire\Admin\Settings\DocumentSignSettingsPage;
 
+use App\Livewire\Admin\Master\CountriesPage;
+use App\Livewire\Admin\Master\CurrenciesPage;
+
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| Root Redirect
 |--------------------------------------------------------------------------
+| No public "home" page. When someone hits '/', send them to dashboard.
 */
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::redirect('/', '/dashboard')->name('home');
 
 /*
 |--------------------------------------------------------------------------
@@ -60,15 +62,22 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Phase 1 – Admin (System Foundation)
-| Only SUPER_ADMIN can access these pages
+| Phase 1 + Phase 2 Admin Area
+| (Later you can add a SUPER_ADMIN middleware here)
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth',])
+Route::middleware(['auth'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+
+        /*
+        |----------------------------------------------
+        | Phase 1 – System Foundation
+        |----------------------------------------------
+        */
+
         // User & Role Management
         Route::get('/users', ManageUsers::class)->name('users.index');
 
@@ -81,4 +90,23 @@ Route::middleware(['auth',])
         // Document Sign & Seal Mapping
         Route::get('/document-sign-settings', DocumentSignSettingsPage::class)
             ->name('document-sign-settings.index');
+
+        /*
+        |----------------------------------------------
+        | Phase 2.1 – Master Data: Countries & Currencies
+        | URL prefix: /admin/master/...
+        |----------------------------------------------
+        */
+
+        Route::prefix('master')
+            ->name('master.')
+            ->group(function () {
+                // Countries
+                Route::get('/countries', CountriesPage::class)
+                    ->name('countries.index');
+
+                // Currencies
+                Route::get('/currencies', CurrenciesPage::class)
+                    ->name('currencies.index');
+            });
     });
