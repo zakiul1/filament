@@ -12,6 +12,28 @@ use App\Livewire\Admin\Settings\DocumentSignSettingsPage;
 
 use App\Livewire\Admin\Master\CountriesPage;
 use App\Livewire\Admin\Master\CurrenciesPage;
+use App\Livewire\Admin\Master\PortsPage;
+use App\Livewire\Admin\Master\ShipmentModesPage;
+use App\Livewire\Admin\Master\IncotermsPage;
+use App\Livewire\Admin\Master\PaymentTermsPage;
+use App\Livewire\Admin\Master\BanksPage;
+use App\Livewire\Admin\Master\BankBranchesPage;
+use App\Livewire\Admin\Master\BeneficiaryCompaniesPage;
+use App\Livewire\Admin\Master\BeneficiaryBankAccountsPage;
+use App\Livewire\Admin\Master\CouriersPage;
+use App\Livewire\Admin\Master\CustomersPage;
+use App\Livewire\Admin\Master\CustomerBanksPage;
+use App\Livewire\Admin\Master\FactoriesPage;
+use App\Livewire\Admin\Master\FactoryCategoriesPage;
+use App\Livewire\Admin\Master\FactorySubcategoriesPage;
+use App\Livewire\Admin\Master\FactoryCertificatesPage;
+use App\Livewire\Admin\Trade\ProformaInvoicesPage;
+
+
+
+
+
+
 
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -108,5 +130,61 @@ Route::middleware(['auth'])
                 // Currencies
                 Route::get('/currencies', CurrenciesPage::class)
                     ->name('currencies.index');
+
+                Route::get('/ports', PortsPage::class)
+                    ->name('ports.index');
+
+                // Shipment Modes
+                Route::get('/shipment-modes', ShipmentModesPage::class)
+                    ->name('shipment-modes.index');
+                // Incoterms
+                Route::get('/incoterms', IncotermsPage::class)
+                    ->name('incoterms.index');
+
+                // Payment Terms
+                Route::get('/payment-terms', PaymentTermsPage::class)
+                    ->name('payment-terms.index');
+
+                // Banks
+                Route::get('/banks', BanksPage::class)
+                    ->name('banks.index');
+
+                // Bank Branches
+                Route::get('/bank-branches', BankBranchesPage::class)
+                    ->name('bank-branches.index');
+
+                // Beneficiary Companies
+                Route::get('/beneficiary-companies', BeneficiaryCompaniesPage::class)
+                    ->name('beneficiary-companies.index');
+
+                // Beneficiary Bank Accounts
+                Route::get('/beneficiary-bank-accounts', BeneficiaryBankAccountsPage::class)
+                    ->name('beneficiary-bank-accounts.index');
+
+                // Couriers
+                Route::get('/couriers', CouriersPage::class)
+                    ->name('couriers.index');
+                // Customers
+                Route::get('/customers', CustomersPage::class)
+                    ->name('customers.index');
+
+                Route::get('/customer-banks', CustomerBanksPage::class)
+                    ->name('customer-banks.index');
+                Route::get('/factories', FactoriesPage::class)->name('factories.index');
+                Route::get('/factory-categories', FactoryCategoriesPage::class)->name('factory-categories.index');
+                Route::get('/factory-subcategories', FactorySubcategoriesPage::class)->name('factory-subcategories.index');
+                Route::get('/factory-certificates', FactoryCertificatesPage::class)->name('factory-certificates.index');
+
+
             });
+
+
+
+        Route::prefix('trade')
+            ->name('trade.')
+            ->group(function () {
+                Route::get('/proforma-invoices', ProformaInvoicesPage::class)
+                    ->name('proforma-invoices.index');
+            });
+
     });

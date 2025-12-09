@@ -2,8 +2,7 @@
 
 namespace App\Livewire\Admin\Master;
 
-use App\Models\Currency;
-use Filament\Actions;
+use App\Models\ShipmentMode;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms;
@@ -12,19 +11,18 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
 use Livewire\Component;
 
-class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
+class ShipmentModesPage extends Component implements HasTable, HasForms, HasActions
 {
     use InteractsWithTable;
     use InteractsWithForms;
@@ -33,10 +31,10 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
     public function table(Table $table): Table
     {
         return $table
-            ->query(Currency::query())
+            ->query(ShipmentMode::query())
             ->columns([
                 TextColumn::make('name')
-                    ->label('Currency')
+                    ->label('Mode')
                     ->searchable()
                     ->sortable()
                     ->weight('medium'),
@@ -47,64 +45,42 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('symbol')
-                    ->label('Symbol')
-                    ->alignCenter(),
-
-                IconColumn::make('is_default')
-                    ->label('Default')
-                    ->boolean(),
-
                 ToggleColumn::make('is_active')
                     ->label('Active'),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add Currency')
-                    ->modalHeading('Create Currency')
+                    ->label('Add Shipment Mode')
+                    ->modalHeading('Create Shipment Mode')
                     ->form($this->getFormSchema()),
             ])
             ->actions([
                 EditAction::make()
-                    ->modalHeading(fn(Currency $record) => 'Edit Currency: ' . $record->code)
+                    ->modalHeading(fn(ShipmentMode $record) => 'Edit Shipment Mode: ' . $record->name)
                     ->form($this->getFormSchema()),
 
                 DeleteAction::make()
                     ->requiresConfirmation(),
             ])
-            ->defaultSort('code')
-            ->emptyStateHeading('No currencies found')
-            ->emptyStateDescription('Add at least one currency to get started.')
-            ->striped();
+            ->defaultSort('name')
+            ->striped()
+            ->emptyStateHeading('No shipment modes found')
+            ->emptyStateDescription('Add Sea, Air, Courier, etc. to get started.');
     }
 
     protected function getFormSchema(): array
     {
         return [
             TextInput::make('name')
-                ->label('Currency Name')
+                ->label('Mode Name')
                 ->required()
-                ->maxLength(255),
+                ->maxLength(50)
+                ->placeholder('Sea, Air, Courier'),
+
             TextInput::make('code')
                 ->label('Code')
-                ->required()
-                ->maxLength(3)
-                ->placeholder('USD, EUR, BDT')
-                ->extraInputAttributes([
-                    'style' => 'text-transform: uppercase;',
-                    'onInput' => 'this.value = this.value.toUpperCase();',
-                ])
-                ->dehydrateStateUsing(fn($state) => strtoupper($state)),
-
-
-            TextInput::make('symbol')
-                ->label('Symbol')
-                ->maxLength(8)
-                ->placeholder('$, €, ৳'),
-
-            Toggle::make('is_default')
-                ->label('Default Currency')
-                ->helperText('Only one currency will be used as system default.'),
+                ->maxLength(10)
+                ->placeholder('SEA, AIR, COURIER'),
 
             Toggle::make('is_active')
                 ->label('Active')
@@ -114,6 +90,6 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
 
     public function render(): View
     {
-        return view('livewire.admin.master.currencies-page');
+        return view('livewire.admin.master.shipment-modes-page');
     }
 }

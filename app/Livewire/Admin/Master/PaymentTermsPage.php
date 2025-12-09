@@ -2,29 +2,28 @@
 
 namespace App\Livewire\Admin\Master;
 
-use App\Models\Currency;
-use Filament\Actions;
+use App\Models\PaymentTerm;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
 use Livewire\Component;
 
-class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
+class PaymentTermsPage extends Component implements HasTable, HasForms, HasActions
 {
     use InteractsWithTable;
     use InteractsWithForms;
@@ -33,10 +32,10 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
     public function table(Table $table): Table
     {
         return $table
-            ->query(Currency::query())
+            ->query(PaymentTerm::query())
             ->columns([
                 TextColumn::make('name')
-                    ->label('Currency')
+                    ->label('Payment Term')
                     ->searchable()
                     ->sortable()
                     ->weight('medium'),
@@ -45,66 +44,62 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
                     ->label('Code')
                     ->badge()
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('symbol')
-                    ->label('Symbol')
-                    ->alignCenter(),
-
-                IconColumn::make('is_default')
-                    ->label('Default')
-                    ->boolean(),
+                TextColumn::make('days_due')
+                    ->label('Days')
+                    ->sortable()
+                    ->alignRight()
+                    ->formatStateUsing(fn($state) => $state ? $state . ' days' : '—'),
 
                 ToggleColumn::make('is_active')
                     ->label('Active'),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add Currency')
-                    ->modalHeading('Create Currency')
+                    ->label('Add Payment Term')
+                    ->modalHeading('Create Payment Term')
                     ->form($this->getFormSchema()),
             ])
             ->actions([
                 EditAction::make()
-                    ->modalHeading(fn(Currency $record) => 'Edit Currency: ' . $record->code)
+                    ->modalHeading(fn(PaymentTerm $record) => 'Edit Payment Term: ' . $record->name)
                     ->form($this->getFormSchema()),
 
                 DeleteAction::make()
                     ->requiresConfirmation(),
             ])
-            ->defaultSort('code')
-            ->emptyStateHeading('No currencies found')
-            ->emptyStateDescription('Add at least one currency to get started.')
-            ->striped();
+            ->defaultSort('name')
+            ->striped()
+            ->emptyStateHeading('No payment terms found')
+            ->emptyStateDescription('Add LC, TT, DP terms to get started.');
     }
 
     protected function getFormSchema(): array
     {
         return [
             TextInput::make('name')
-                ->label('Currency Name')
+                ->label('Payment Term')
                 ->required()
-                ->maxLength(255),
+                ->maxLength(255)
+                ->placeholder('LC at Sight, LC 30 Days, TT Advance 100%, etc.'),
+
             TextInput::make('code')
                 ->label('Code')
-                ->required()
-                ->maxLength(3)
-                ->placeholder('USD, EUR, BDT')
-                ->extraInputAttributes([
-                    'style' => 'text-transform: uppercase;',
-                    'onInput' => 'this.value = this.value.toUpperCase();',
-                ])
-                ->dehydrateStateUsing(fn($state) => strtoupper($state)),
+                ->maxLength(50)
+                ->placeholder('LC_SIGHT, LC_30D, TT_ADV'),
 
+            TextInput::make('days_due')
+                ->label('Days Due')
+                ->numeric()
+                ->minValue(0)
+                ->maxValue(365)
+                ->placeholder('e.g. 0, 30, 60'),
 
-            TextInput::make('symbol')
-                ->label('Symbol')
-                ->maxLength(8)
-                ->placeholder('$, €, ৳'),
-
-            Toggle::make('is_default')
-                ->label('Default Currency')
-                ->helperText('Only one currency will be used as system default.'),
+            Textarea::make('description')
+                ->label('Description')
+                ->rows(3)
+                ->placeholder('Optional notes, e.g. payment condition.'),
 
             Toggle::make('is_active')
                 ->label('Active')
@@ -114,6 +109,6 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
 
     public function render(): View
     {
-        return view('livewire.admin.master.currencies-page');
+        return view('livewire.admin.master.payment-terms-page');
     }
 }

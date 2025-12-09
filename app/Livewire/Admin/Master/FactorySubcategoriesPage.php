@@ -2,30 +2,30 @@
 
 namespace App\Livewire\Admin\Master;
 
-use App\Models\Country;
-use Filament\Actions;
+use App\Models\FactoryCategory;
+use App\Models\FactorySubcategory;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
 use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
-
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
-class CountriesPage extends Component implements HasTable, HasForms, HasActions
+class FactorySubcategoriesPage extends Component implements HasTable, HasForms, HasActions
 {
     use InteractsWithTable;
     use InteractsWithForms;
@@ -34,64 +34,69 @@ class CountriesPage extends Component implements HasTable, HasForms, HasActions
     public function table(Table $table): Table
     {
         return $table
-            ->query(Country::query())
+            ->query(
+                FactorySubcategory::query()->with('category')
+            )
             ->columns([
                 TextColumn::make('name')
-                    ->label('Country')
+                    ->label('Subcategory')
                     ->searchable()
-                    ->sortable()
-                    ->weight('medium'),
-
-                TextColumn::make('code')
-                    ->label('Code')
-                    ->sortable()
-                    ->searchable()
-                    ->badge()
-                    ->color('gray'),
-
-                ToggleColumn::make('is_active')
-                    ->label('Active')
                     ->sortable(),
+
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->sortable(),
+
+                TextColumn::make('slug')
+                    ->label('Slug')
+                    ->sortable(),
+
+                IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add Country')
-                    ->modalHeading('Create Country')
+                    ->label('Add Subcategory')
                     ->form($this->getFormSchema()),
             ])
             ->actions([
                 EditAction::make()
-                    ->modalHeading(fn(Country $record) => 'Edit Country: ' . $record->name)
                     ->form($this->getFormSchema()),
 
                 DeleteAction::make()
                     ->requiresConfirmation(),
             ])
             ->defaultSort('name')
-            ->emptyStateHeading('No countries found')
-            ->emptyStateDescription('Add your first country to get started.')
             ->striped();
     }
 
     protected function getFormSchema(): array
     {
         return [
+            Select::make('factory_category_id')
+                ->label('Category')
+                ->options(
+                    FactoryCategory::where('is_active', true)
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                )
+                ->searchable()
+                ->preload()
+                ->required(),
+
             TextInput::make('name')
-                ->label('Country Name')
+                ->label('Name')
                 ->required()
                 ->maxLength(255),
 
-            TextInput::make('code')
-                ->label('ISO Code (3 letters)')
-                ->maxLength(3)
-                ->placeholder('e.g. BGD, USA, GBR')
-                ->alpha()
-                ->extraInputAttributes([
-                    'style' => 'text-transform: uppercase;',
-                    'onInput' => 'this.value = this.value.toUpperCase();',
-                ])
-                ->dehydrateStateUsing(fn($state) => strtoupper($state)),
+            TextInput::make('slug')
+                ->label('Slug')
+                ->maxLength(255),
 
+            Textarea::make('description')
+                ->label('Description')
+                ->rows(3),
 
             Toggle::make('is_active')
                 ->label('Active')
@@ -101,6 +106,6 @@ class CountriesPage extends Component implements HasTable, HasForms, HasActions
 
     public function render(): View
     {
-        return view('livewire.admin.master.countries-page');
+        return view('livewire.admin.master.factory-subcategories-page');
     }
 }

@@ -2,29 +2,28 @@
 
 namespace App\Livewire\Admin\Master;
 
-use App\Models\Currency;
-use Filament\Actions;
+use App\Models\Incoterm;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
 use Livewire\Component;
 
-class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
+class IncotermsPage extends Component implements HasTable, HasForms, HasActions
 {
     use InteractsWithTable;
     use InteractsWithForms;
@@ -33,63 +32,57 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
     public function table(Table $table): Table
     {
         return $table
-            ->query(Currency::query())
+            ->query(Incoterm::query())
             ->columns([
-                TextColumn::make('name')
-                    ->label('Currency')
-                    ->searchable()
-                    ->sortable()
-                    ->weight('medium'),
-
                 TextColumn::make('code')
                     ->label('Code')
                     ->badge()
                     ->sortable()
+                    ->searchable()
+                    ->weight('medium'),
+
+                TextColumn::make('name')
+                    ->label('Name')
+                    ->sortable()
                     ->searchable(),
 
-                TextColumn::make('symbol')
-                    ->label('Symbol')
-                    ->alignCenter(),
-
-                IconColumn::make('is_default')
-                    ->label('Default')
-                    ->boolean(),
+                TextColumn::make('version')
+                    ->label('Version')
+                    ->badge()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 ToggleColumn::make('is_active')
                     ->label('Active'),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add Currency')
-                    ->modalHeading('Create Currency')
+                    ->label('Add Incoterm')
+                    ->modalHeading('Create Incoterm')
                     ->form($this->getFormSchema()),
             ])
             ->actions([
                 EditAction::make()
-                    ->modalHeading(fn(Currency $record) => 'Edit Currency: ' . $record->code)
+                    ->modalHeading(fn(Incoterm $record) => 'Edit Incoterm: ' . $record->code)
                     ->form($this->getFormSchema()),
 
                 DeleteAction::make()
                     ->requiresConfirmation(),
             ])
             ->defaultSort('code')
-            ->emptyStateHeading('No currencies found')
-            ->emptyStateDescription('Add at least one currency to get started.')
-            ->striped();
+            ->striped()
+            ->emptyStateHeading('No Incoterms found')
+            ->emptyStateDescription('Add FOB, CIF, CFR, etc. to get started.');
     }
 
     protected function getFormSchema(): array
     {
         return [
-            TextInput::make('name')
-                ->label('Currency Name')
-                ->required()
-                ->maxLength(255),
             TextInput::make('code')
                 ->label('Code')
                 ->required()
-                ->maxLength(3)
-                ->placeholder('USD, EUR, BDT')
+                ->maxLength(10)
+                ->placeholder('FOB, CIF, CFR')
                 ->extraInputAttributes([
                     'style' => 'text-transform: uppercase;',
                     'onInput' => 'this.value = this.value.toUpperCase();',
@@ -97,14 +90,20 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
                 ->dehydrateStateUsing(fn($state) => strtoupper($state)),
 
 
-            TextInput::make('symbol')
-                ->label('Symbol')
-                ->maxLength(8)
-                ->placeholder('$, €, ৳'),
+            TextInput::make('name')
+                ->label('Name')
+                ->maxLength(255)
+                ->placeholder('Free On Board, Cost Insurance Freight, etc.'),
 
-            Toggle::make('is_default')
-                ->label('Default Currency')
-                ->helperText('Only one currency will be used as system default.'),
+            TextInput::make('version')
+                ->label('Version')
+                ->maxLength(10)
+                ->placeholder('2020'),
+
+            Textarea::make('description')
+                ->label('Description')
+                ->rows(3)
+                ->placeholder('Optional notes or explanation.'),
 
             Toggle::make('is_active')
                 ->label('Active')
@@ -114,6 +113,6 @@ class CurrenciesPage extends Component implements HasTable, HasForms, HasActions
 
     public function render(): View
     {
-        return view('livewire.admin.master.currencies-page');
+        return view('livewire.admin.master.incoterms-page');
     }
 }

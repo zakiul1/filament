@@ -1,4 +1,4 @@
-<x-admin.master-layout :title="__('Currencies')">
+<x-admin.master-layout :title="__('Factories')">
     {{ $this->table }}
 
     <x-filament-actions::modals />

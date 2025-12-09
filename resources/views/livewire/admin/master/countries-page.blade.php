@@ -1,5 +1,5 @@
-<x-admin.system-layout :title="__('Countries')">
+<x-admin.master-layout :title="__('Countries')">
     {{ $this->table }}
 
     <x-filament-actions::modals />
-</x-admin.system-layout>
+</x-admin.master-layout>
