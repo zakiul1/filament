@@ -125,6 +125,29 @@
                     :current="request()->routeIs('admin.trade.proforma-invoices.*')" wire:navigate>
                     {{ __('Proforma Invoices') }}
                 </flux:navlist.item>
+
+
+                <flux:navlist.item icon="banknotes" :href="route('admin.trade.lc-receives.index')"
+                    :current="request()->routeIs('admin.trade.lc-receives.*')" wire:navigate>
+                    {{ __('LC Receive') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="arrow-path" :href="route('admin.trade.lc-transfers.index')"
+                    :current="request()->routeIs('admin.trade.lc-transfers.*')" wire:navigate>
+                    {{ __('LC Transfers') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="pencil-square" :href="route('admin.trade.lc-amendments.index')"
+                    :current="request()->routeIs('admin.trade.lc-amendments.*')" wire:navigate>
+                    {{ __('LC Amendments') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="document-text" :href="route('admin.trade.commercial-invoices.index')"
+                    :current="request()->routeIs('admin.trade.commercial-invoices.*')" wire:navigate>
+                    {{ __('Commercial Invoices') }}
+                </flux:navlist.item>
+
+
             </flux:navlist.group>
 
 

@@ -3,37 +3,30 @@
 namespace App\Livewire\Admin\Trade;
 
 use App\Models\Customer;
-use App\Models\ProformaInvoice;
+use App\Models\LcReceive;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Support\Contracts\TranslatableContentDriver;
 use Filament\Tables;
-
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Filament\Actions\Action;
-
-use Filament\Actions\EditAction;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
-class ProformaInvoicesPage extends Component implements HasTable, HasActions, HasSchemas
+class LcReceivesPage extends Component implements HasTable, HasActions, HasSchemas
 {
     use InteractsWithTable;
     use InteractsWithActions;
     use InteractsWithSchemas;
 
-    /**
-     * Required by Filament's translatable content contracts.
-     * You're not using translations here, so just return null.
-     */
     public function makeFilamentTranslatableContentDriver(): ?TranslatableContentDriver
     {
         return null;
@@ -43,15 +36,15 @@ class ProformaInvoicesPage extends Component implements HasTable, HasActions, Ha
     {
         return $table
             ->query(
-                ProformaInvoice::query()->with(['customer', 'currency'])
+                LcReceive::query()->with(['customer', 'currency'])
             )
             ->columns([
-                TextColumn::make('pi_number')
-                    ->label('PI No.')
+                TextColumn::make('lc_number')
+                    ->label('LC No.')
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('pi_date')
+                TextColumn::make('lc_date')
                     ->label('Date')
                     ->date()
                     ->sortable(),
@@ -64,8 +57,8 @@ class ProformaInvoicesPage extends Component implements HasTable, HasActions, Ha
                 TextColumn::make('currency.code')
                     ->label('Cur.'),
 
-                TextColumn::make('total_amount')
-                    ->label('Total')
+                TextColumn::make('lc_amount')
+                    ->label('Amount')
                     ->numeric(2)
                     ->sortable(),
 
@@ -73,59 +66,51 @@ class ProformaInvoicesPage extends Component implements HasTable, HasActions, Ha
                     ->label('Status')
                     ->colors([
                         'gray' => 'draft',
-                        'info' => 'sent',
-                        'success' => 'accepted',
+                        'info' => 'received',
+                        'success' => 'confirmed',
                         'danger' => 'cancelled',
+                        'warning' => 'expired',
                     ]),
             ])
-
             ->filters([
                 Tables\Filters\SelectFilter::make('customer_id')
                     ->label('Customer')
                     ->options(
-                        Customer::query()
-                            ->orderBy('name')
+                        Customer::orderBy('name')
                             ->pluck('name', 'id')
                             ->toArray()
                     ),
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'draft' => 'Draft',
-                        'sent' => 'Sent',
-                        'accepted' => 'Accepted',
+                        'received' => 'Received',
+                        'confirmed' => 'Confirmed',
                         'cancelled' => 'Cancelled',
+                        'closed' => 'Closed',
+                        'expired' => 'Expired',
                     ]),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('New PI')
+                    ->label('New LC Receive')
                     ->icon('heroicon-o-plus')
-                    ->url(fn() => route('admin.trade.proforma-invoices.create')),
+                    ->url(fn() => route('admin.trade.lc-receives.create')),
             ])
             ->actions([
-                Action::make('print')
-                    ->label('PDF')
-                    ->icon('heroicon-o-printer')
-                    ->url(fn(ProformaInvoice $record) => route('admin.trade.proforma-invoices.print', $record))
-                    ->openUrlInNewTab(),
-
-
                 EditAction::make()
                     ->label('Edit')
                     ->icon('heroicon-o-pencil-square')
-                    ->url(fn(ProformaInvoice $record) => route('admin.trade.proforma-invoices.edit', $record)),
-
+                    ->url(fn(LcReceive $record) => route('admin.trade.lc-receives.edit', $record)),
                 DeleteAction::make(),
             ])
-
-            ->defaultSort('pi_date', 'desc')
+            ->defaultSort('lc_date', 'desc')
             ->striped()
-            ->emptyStateHeading('No Proforma Invoices yet')
-            ->emptyStateDescription('Create your first PI to start the commercial workflow.');
+            ->emptyStateHeading('No LC records yet')
+            ->emptyStateDescription('Create your first LC to start tracking buyer LCs.');
     }
 
     public function render(): View
     {
-        return view('livewire.admin.trade.proforma-invoices-index');
+        return view('livewire.admin.trade.lc-receives-index');
     }
 }

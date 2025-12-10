@@ -37,4 +37,9 @@ class ProformaInvoiceItem extends Model
     {
         return $this->belongsTo(FactorySubcategory::class, 'factory_subcategory_id');
     }
+    // 🔹 Add this – matches items.factorySubcategory in your controller
+    public function factorySubcategory()
+    {
+        return $this->belongsTo(FactorySubcategory::class);
+    }
 }

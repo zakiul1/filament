@@ -28,6 +28,24 @@ use App\Livewire\Admin\Master\FactoryCategoriesPage;
 use App\Livewire\Admin\Master\FactorySubcategoriesPage;
 use App\Livewire\Admin\Master\FactoryCertificatesPage;
 use App\Livewire\Admin\Trade\ProformaInvoicesPage;
+use App\Livewire\Admin\Trade\LcReceivesPage;
+use App\Livewire\Admin\Trade\LcReceiveCreate;
+use App\Livewire\Admin\Trade\LcReceiveEdit;
+use App\Http\Controllers\Admin\Trade\ProformaInvoicePrintController;
+use App\Http\Controllers\Admin\Trade\CommercialInvoicePrintController;
+use App\Livewire\Admin\Trade\LcTransfersPage;
+use App\Livewire\Admin\Trade\LcTransferCreate;
+use App\Livewire\Admin\Trade\LcTransferEdit;
+use App\Livewire\Admin\Trade\LcAmendmentsPage;
+use App\Livewire\Admin\Trade\LcAmendmentCreate;
+use App\Livewire\Admin\Trade\LcAmendmentEdit;
+use App\Livewire\Admin\Trade\CommercialInvoicesPage;
+use App\Livewire\Admin\Trade\CommercialInvoiceCreate;
+use App\Livewire\Admin\Trade\CommercialInvoiceEdit;
+
+
+use App\Livewire\Admin\Trade\ProformaInvoiceCreate;
+use App\Livewire\Admin\Trade\ProformaInvoiceEdit;
 
 
 
@@ -185,6 +203,59 @@ Route::middleware(['auth'])
             ->group(function () {
                 Route::get('/proforma-invoices', ProformaInvoicesPage::class)
                     ->name('proforma-invoices.index');
+
+                Route::get('/proforma-invoices/create', ProformaInvoiceCreate::class)
+                    ->name('proforma-invoices.create');
+
+                Route::get('/proforma-invoices/{record}/edit', ProformaInvoiceEdit::class)
+                    ->name('proforma-invoices.edit');
+
+                Route::get('/proforma-invoices/{proformaInvoice}/print', [ProformaInvoicePrintController::class, 'show'])
+                    ->name('proforma-invoices.print');
+
+                // LC Receive
+                Route::get('/lc-receives', LcReceivesPage::class)->name('lc-receives.index');
+                Route::get('/lc-receives/create', LcReceiveCreate::class)->name('lc-receives.create');
+                Route::get('/lc-receives/{record}/edit', LcReceiveEdit::class)->name('lc-receives.edit');
+
+                // Trade – LC Transfers
+                Route::get('/lc-transfers', LcTransfersPage::class)
+                    ->name('lc-transfers.index');
+
+                Route::get('/lc-transfers/create', LcTransferCreate::class)
+                    ->name('lc-transfers.create');
+
+                Route::get('/lc-transfers/{lcTransfer}/edit', LcTransferEdit::class)
+                    ->name('lc-transfers.edit');
+
+                // LC Amendments
+                Route::get('/lc-amendments', LcAmendmentsPage::class)
+                    ->name('lc-amendments.index');
+
+                Route::get('/lc-amendments/create', LcAmendmentCreate::class)
+                    ->name('lc-amendments.create');
+
+                Route::get('/lc-amendments/{record}/edit', LcAmendmentEdit::class)
+                    ->name('lc-amendments.edit');
+
+
+
+                // Commercial Invoices
+                Route::get('/commercial-invoices', CommercialInvoicesPage::class)
+                    ->name('commercial-invoices.index');
+
+                Route::get('/commercial-invoices/create', CommercialInvoiceCreate::class)
+                    ->name('commercial-invoices.create');
+
+                Route::get('/commercial-invoices/{record}/edit', CommercialInvoiceEdit::class)
+                    ->name('commercial-invoices.edit');
+
+                // ⬇️ NEW: Commercial Invoice print route
+                Route::get('/commercial-invoices/{commercialInvoice}/print', [CommercialInvoicePrintController::class, 'show'])
+                    ->name('commercial-invoices.print');
+
+
             });
+
 
     });

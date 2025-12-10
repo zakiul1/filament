@@ -21,14 +21,17 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             CountrySeeder::class,
             CurrencySeeder::class,
+            CourierSeeder::class,
             ShipmentModeSeeder::class,
             IncotermSeeder::class,
             PaymentTermSeeder::class,
             BankSeeder::class,
             BankBranchSeeder::class,
+            PortSeeder::class,
+            CustomerSeeder::class,
             BeneficiaryCompanySeeder::class,
             BeneficiaryBankAccountSeeder::class,
-            CourierSeeder::class,
+
             FactoryMasterSeeder::class,
         ]);
     }
