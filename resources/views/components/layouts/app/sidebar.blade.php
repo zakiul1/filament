@@ -146,6 +146,25 @@
                     :current="request()->routeIs('admin.trade.commercial-invoices.*')" wire:navigate>
                     {{ __('Commercial Invoices') }}
                 </flux:navlist.item>
+                <flux:navlist.item icon="cube" :href="route('admin.trade.packing-lists.index')"
+                    :current="request()->routeIs('admin.trade.packing-lists.*')" wire:navigate>
+                    Packing Lists
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="document-text" :href="route('admin.trade.bill-of-exchanges.index')"
+                    :current="request()->routeIs('admin.trade.bill-of-exchanges.*')" wire:navigate>
+                    {{ __('Bills of Exchange') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="envelope" :href="route('admin.trade.negotiation-letters.index')"
+                    :current="request()->routeIs('admin.trade.negotiation-letters.*')" wire:navigate>
+                    {{ __('Negotiation Letters') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="beaker" :href="route('admin.trade.sample-invoices.index')"
+                    :current="request()->routeIs('admin.trade.sample-invoices.*')" wire:navigate>
+                    {{ __('Sample Invoices') }}
+                </flux:navlist.item>
 
 
             </flux:navlist.group>
