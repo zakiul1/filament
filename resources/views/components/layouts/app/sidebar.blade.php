@@ -167,7 +167,35 @@
                 </flux:navlist.item>
 
 
+                <flux:navlist.item icon="clipboard-document-check" :href="route('admin.trade.buyer-orders.index')"
+                    :current="request()->routeIs('admin.trade.buyer-orders.*')" wire:navigate>
+                    {{ __('Buyer Orders') }}
+                </flux:navlist.item>
+
+
             </flux:navlist.group>
+
+
+
+            {{-- REPORTS --}}
+            <flux:navlist.group :heading="__('Reports')" class="grid">
+                <flux:navlist.item icon="chart-bar" :href="route('admin.reports.trade.index')"
+                    :current="request()->routeIs('admin.reports.trade.*')" wire:navigate>
+                    {{ __('Trade Reports') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="document-text" :href="route('admin.reports.buyer-orders.summary.select')"
+                    :current="request()->routeIs('admin.reports.buyer-orders.summary.*')" wire:navigate>
+                    {{ __('Buyer Order Summary') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="building-office-2"
+                    :href="route('admin.reports.buyer-orders.factory-allocation.select')"
+                    :current="request()->routeIs('admin.reports.buyer-orders.factory-allocation.*')" wire:navigate>
+                    {{ __('Factory Allocation') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+
 
 
         </flux:navlist>

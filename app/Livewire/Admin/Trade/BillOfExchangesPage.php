@@ -21,6 +21,7 @@ use Livewire\Component;
 use Filament\Actions\Action;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Tables\Filters\SelectFilter;
 
 class BillOfExchangesPage extends Component implements HasTable, HasActions, HasSchemas
 {
@@ -77,19 +78,19 @@ class BillOfExchangesPage extends Component implements HasTable, HasActions, Has
                     ]),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('customer_id')
+                SelectFilter::make('customer_id')
                     ->label('Customer')
                     ->options(
                         Customer::orderBy('name')->pluck('name', 'id')->toArray()
                     ),
 
-                Tables\Filters\SelectFilter::make('boe_type')
+                SelectFilter::make('boe_type')
                     ->options([
                         'FIRST' => 'First',
                         'SECOND' => 'Second',
                     ]),
 
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->options([
                         'draft' => 'Draft',
                         'sent' => 'Sent',
