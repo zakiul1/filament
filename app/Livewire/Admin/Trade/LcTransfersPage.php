@@ -10,6 +10,7 @@ use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\Action;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Support\Contracts\TranslatableContentDriver;
@@ -21,6 +22,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use Filament\Tables\Filters\SelectFilter;
 
 class LcTransfersPage extends Component implements HasTable, HasActions, HasSchemas
 {
@@ -83,7 +85,7 @@ class LcTransfersPage extends Component implements HasTable, HasActions, HasSche
                     ]),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('lc_receive_id')
+                SelectFilter::make('lc_receive_id')
                     ->label('Source LC')
                     ->options(
                         LcReceive::orderByDesc('lc_date')
@@ -91,7 +93,7 @@ class LcTransfersPage extends Component implements HasTable, HasActions, HasSche
                             ->toArray()
                     ),
 
-                Tables\Filters\SelectFilter::make('factory_id')
+                SelectFilter::make('factory_id')
                     ->label('Factory')
                     ->options(
                         Factory::orderBy('name')
@@ -99,7 +101,7 @@ class LcTransfersPage extends Component implements HasTable, HasActions, HasSche
                             ->toArray()
                     ),
 
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->options([
                         'draft' => 'Draft',
                         'issued' => 'Issued',
@@ -115,6 +117,20 @@ class LcTransfersPage extends Component implements HasTable, HasActions, HasSche
                     ->url(fn() => route('admin.trade.lc-transfers.create')),
             ])
             ->actions([
+                Action::make('print_letter')
+                    ->label('Print Letter')
+                    ->icon('heroicon-o-printer')
+                    ->url(fn(LcTransfer $record) => route('admin.trade.lc-transfers.letter.print', $record))
+                    ->openUrlInNewTab(),
+
+                // Optional: if you also have normal LC Transfer print
+                Action::make('print')
+                    ->label('Print')
+                    ->icon('heroicon-o-document-text')
+                    ->url(fn(LcTransfer $record) => route('admin.trade.lc-transfers.print', $record))
+                    ->openUrlInNewTab()
+                    ->visible(fn() => \Illuminate\Support\Facades\Route::has('admin.trade.lc-transfers.print')),
+
                 EditAction::make()
                     ->label('Edit')
                     ->icon('heroicon-o-pencil-square')
@@ -122,6 +138,7 @@ class LcTransfersPage extends Component implements HasTable, HasActions, HasSche
 
                 DeleteAction::make(),
             ])
+
             ->defaultSort('transfer_date', 'desc')
             ->striped()
             ->emptyStateHeading('No LC Transfers yet')

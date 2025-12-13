@@ -110,9 +110,9 @@ class ProformaInvoice extends Model
     {
         return $this->hasMany(ProformaInvoiceItem::class);
     }
-    public function proformaInvoice()
-    {
-        return $this->belongsTo(ProformaInvoice::class);
-    }
+    /*     public function proformaInvoice()
+        {
+            return $this->belongsTo(ProformaInvoice::class);
+        } */
 
 }

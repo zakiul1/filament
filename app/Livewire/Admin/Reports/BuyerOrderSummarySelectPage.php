@@ -19,6 +19,10 @@ class BuyerOrderSummarySelectPage extends Component implements HasSchemas
         'buyer_order_id' => null,
     ];
 
+    public function mount(): void
+    {
+        $this->form->fill($this->data);
+    }
     public function form(Schema $schema): Schema
     {
         return $schema

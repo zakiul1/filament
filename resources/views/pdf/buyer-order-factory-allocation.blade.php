@@ -6,7 +6,13 @@
     <title>Buyer Order Factory Allocation - {{ $record->order_number }}</title>
     <style>
         @page {
+            size: A4 portrait;
             margin: 22px;
+        }
+
+        html,
+        body {
+            width: 100%;
         }
 
         body {
@@ -25,10 +31,13 @@
             margin: 0 0 6px 0;
         }
 
+        .small {
+            font-size: 11px;
+        }
+
         .box {
             border: 1px solid #ddd;
             padding: 10px;
-            border-radius: 6px;
         }
 
         .hr {
@@ -40,12 +49,15 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         th,
         td {
             border: 1px solid #ddd;
             padding: 6px;
+            vertical-align: top;
+            word-wrap: break-word;
         }
 
         th {
@@ -62,33 +74,49 @@
             text-align: center;
         }
 
-        .small {
-            font-size: 11px;
+        .header-table,
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        .header-table td,
+        .meta-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
         }
 
         .page-break {
-            page-break-after: always;
+            page-break-before: always;
         }
     </style>
+
 </head>
 
 <body>
-
     {{-- Header --}}
     <div class="box">
-        <div style="display:flex; justify-content:space-between;">
-            <div>
-                <p class="title">BUYER ORDER – FACTORY ALLOCATION</p>
-                <p class="small muted">System Generated</p>
-            </div>
-            <div class="small" style="text-align:right;">
-                <div><span class="muted">Order No:</span> <strong>{{ $record->order_number }}</strong></div>
-                <div><span class="muted">Order Date:</span>
-                    <strong>{{ optional($record->order_date)->format('d-M-Y') ?? $record->order_date }}</strong>
-                </div>
-                <div><span class="muted">Customer:</span> <strong>{{ $record->customer->name ?? '-' }}</strong></div>
-            </div>
-        </div>
+        <table class="header-table">
+            <tr>
+                <td>
+                    <p class="title">BUYER ORDER – FACTORY ALLOCATION</p>
+                    <p class="small muted">System Generated</p>
+                </td>
+                <td style="text-align:right; width:260px;">
+                    <div class="small">
+                        <div><span class="muted">Order No:</span> <strong>{{ $record->order_number }}</strong></div>
+                        <div>
+                            <span class="muted">Order Date:</span>
+                            <strong>{{ optional($record->order_date)->format('d-M-Y') ?? $record->order_date }}</strong>
+                        </div>
+                        <div><span class="muted">Customer:</span> <strong>{{ $record->customer->name ?? '-' }}</strong>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="hr"></div>
@@ -106,25 +134,31 @@
         @endphp
 
         <div class="box" style="margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between;">
-                <div>
-                    <div class="small muted">Factory</div>
-                    <div style="font-weight:700; font-size:14px;">{{ $fx['name'] }}</div>
-                    <div class="small muted">
-                        {{ $factory->address_line_1 ?? '' }}
-                        {{ $factory->city ? ', ' . $factory->city : '' }}
-                        {{ $factory->country?->name ? ', ' . $factory->country->name : '' }}
-                    </div>
-                </div>
-                <div class="small" style="text-align:right;">
-                    <div><span class="muted">Total Qty:</span>
-                        <strong>{{ number_format((float) $fx['total_qty'], 0) }}</strong>
-                    </div>
-                    <div><span class="muted">Total Amount:</span>
-                        <strong>{{ number_format((float) $fx['total_amount'], 2) }}</strong>
-                    </div>
-                </div>
-            </div>
+            <table class="meta-table">
+                <tr>
+                    <td>
+                        <div class="small muted">Factory</div>
+                        <div style="font-weight:700; font-size:14px;">{{ $fx['name'] }}</div>
+                        <div class="small muted">
+                            {{ $factory->address_line_1 ?? '' }}
+                            {{ $factory->city ? ', ' . $factory->city : '' }}
+                            {{ $factory->country?->name ? ', ' . $factory->country->name : '' }}
+                        </div>
+                    </td>
+                    <td style="text-align:right; width:220px;">
+                        <div class="small">
+                            <div>
+                                <span class="muted">Total Qty:</span>
+                                <strong>{{ number_format((float) $fx['total_qty'], 0) }}</strong>
+                            </div>
+                            <div>
+                                <span class="muted">Total Amount:</span>
+                                <strong>{{ number_format((float) $fx['total_amount'], 2) }}</strong>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <table>
@@ -141,6 +175,7 @@
                     <th class="right" style="width:100px;">Amount</th>
                 </tr>
             </thead>
+
             <tbody>
                 @foreach ($fx['items'] as $row)
                     <tr>
@@ -156,6 +191,7 @@
                     </tr>
                 @endforeach
             </tbody>
+
             <tfoot>
                 <tr>
                     <th colspan="6" class="right">Factory Total</th>
@@ -177,16 +213,22 @@
     {{-- Grand Totals --}}
     <div class="hr"></div>
     <div class="box">
-        <div style="display:flex; justify-content:space-between;">
-            <div style="font-weight:700;">Grand Totals</div>
-            <div class="small" style="text-align:right;">
-                <div><span class="muted">Qty:</span> <strong>{{ number_format((float) $grandQty, 0) }}</strong></div>
-                <div><span class="muted">Amount:</span> <strong>{{ number_format((float) $grandAmount, 2) }}</strong>
-                </div>
-            </div>
-        </div>
+        <table class="meta-table">
+            <tr>
+                <td style="font-weight:700;">Grand Totals</td>
+                <td style="text-align:right; width:220px;">
+                    <div class="small">
+                        <div><span class="muted">Qty:</span>
+                            <strong>{{ number_format((float) $grandQty, 0) }}</strong>
+                        </div>
+                        <div><span class="muted">Amount:</span>
+                            <strong>{{ number_format((float) $grandAmount, 2) }}</strong>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
-
 </body>
 
 </html>

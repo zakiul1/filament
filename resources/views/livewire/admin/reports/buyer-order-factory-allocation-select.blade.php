@@ -12,13 +12,6 @@
         </div>
     </x-slot>
 
-    @php
-        // Only build the route when an ID exists (avoids route() errors too)
-        $printUrl = !empty($buyerOrderId)
-            ? route('admin.reports.buyer-orders.factory-allocation.print', ['buyerOrder' => $buyerOrderId])
-            : null;
-    @endphp
-
     <div class="py-6">
         <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
             <div
@@ -28,19 +21,12 @@
             </div>
 
             <div class="mt-4 flex gap-2">
-                @if ($buyerOrderId)
-                    <a href="{{ route('admin.reports.buyer-orders.factory-allocation.print', ['buyerOrder' => $buyerOrderId]) }}"
-                        target="_blank" rel="noopener noreferrer">
-                        <flux:button type="button" variant="primary">
-                            Print Allocation PDF
-                        </flux:button>
-                    </a>
-                @else
-                    <flux:button type="button" variant="primary" disabled>
-                        Print Allocation PDF P
-                    </flux:button>
-                @endif
+                {{-- Print --}}
+                <flux:button type="button" variant="primary" wire:click="printAllocation">
+                    Print Allocation PDF
+                </flux:button>
 
+                {{-- Back --}}
                 <flux:button type="button" variant="ghost" href="{{ route('admin.reports.trade.index') }}">
                     Back
                 </flux:button>

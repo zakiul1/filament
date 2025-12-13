@@ -65,6 +65,11 @@ class LcReceive extends Model
     {
         return $this->belongsTo(BeneficiaryBankAccount::class);
     }
+    public function proformaInvoice(): BelongsTo
+    {
+        return $this->belongsTo(ProformaInvoice::class);
+    }
+
 
     public function currency(): BelongsTo
     {

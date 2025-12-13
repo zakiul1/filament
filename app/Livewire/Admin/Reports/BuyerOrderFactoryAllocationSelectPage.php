@@ -26,31 +26,45 @@ class BuyerOrderFactoryAllocationSelectPage extends Component implements HasSche
 
     public function form(Schema $schema): Schema
     {
-        return $schema->schema([
-            Section::make('Select Buyer Order')
-                ->schema([
-                    Select::make('buyer_order_id')
-                        ->label('Buyer Order')
-                        ->options(
-                            BuyerOrder::query()
-                                ->orderBy('order_number')
-                                ->pluck('order_number', 'id')
-                                ->toArray()
-                        )
-                        ->searchable()
-                        ->preload()
-                        ->required(),
-                ])
-                ->columns(1),
-        ])->statePath('data');
+        return $schema
+            ->statePath('data')
+            ->schema([
+                Section::make('Select Buyer Order')
+                    ->schema([
+                        Select::make('buyer_order_id')
+                            ->label('Buyer Order')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->options(
+                                BuyerOrder::query()
+                                    ->orderByDesc('id') // consistent with other select pages
+                                    ->pluck('order_number', 'id')
+                                    ->toArray()
+                            ),
+                    ])
+                    ->columns(1),
+            ]);
+    }
+
+    /** ✅ Button should call this */
+    public function printAllocation(): void
+    {
+        $state = $this->form->getState();
+
+        $this->validate([
+            'data.buyer_order_id' => ['required', 'integer', 'exists:buyer_orders,id'],
+        ]);
+
+        $this->redirectRoute(
+            'admin.reports.buyer-orders.factory-allocation.print',
+            ['buyerOrder' => $state['buyer_order_id']],
+            navigate: true
+        );
     }
 
     public function render(): View
     {
-        $buyerOrderId = $this->data['buyer_order_id'] ?? null;
-
-        return view('livewire.admin.reports.buyer-order-factory-allocation-select', [
-            'buyerOrderId' => $buyerOrderId,
-        ]);
+        return view('livewire.admin.reports.buyer-order-factory-allocation-select');
     }
 }

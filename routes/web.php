@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Print\LcTransferLetterPrintController;
+use App\Http\Controllers\Print\LcTransferPrintController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -85,6 +87,12 @@ use App\Http\Controllers\Print\PackingListPrintController;
 use App\Http\Controllers\Print\BillOfExchangePrintController;
 use App\Http\Controllers\Print\NegotiationLetterPrintController;
 use App\Http\Controllers\Print\SampleInvoicePrintController;
+
+
+use App\Livewire\Admin\Trade\ExportBundlesPage;
+use App\Livewire\Admin\Trade\ExportBundleCreate;
+use App\Livewire\Admin\Trade\ExportBundleView;
+
 
 use App\Http\Controllers\Print\BuyerOrderPrintController;
 use App\Http\Controllers\Print\BuyerOrderSummaryPrintController;
@@ -271,6 +279,20 @@ Route::middleware(['auth'])
 
             Route::get('/buyer-orders/{buyerOrder}/factory-allocation/print', [BuyerOrderFactoryAllocationPrintController::class, 'show'])
                 ->name('buyer-orders.factory-allocation.print');
+            Route::get('/lc-transfers/{lcTransfer}/print', [LcTransferPrintController::class, 'show'])
+                ->name('lc-transfers.print');
+
+
+
+            Route::get('/lc-transfers/{lcTransfer}/letter/print', [LcTransferLetterPrintController::class, 'show'])
+                ->name('lc-transfers.letter.print');
+
+
+
+            Route::get('/export-bundles', ExportBundlesPage::class)->name('export-bundles.index');
+            Route::get('/export-bundles/create', ExportBundleCreate::class)->name('export-bundles.create');
+            Route::get('/export-bundles/{record}', ExportBundleView::class)->name('export-bundles.show');
+
         });
 
         /*

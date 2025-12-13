@@ -17,17 +17,22 @@ class BuyerOrderFactoryAllocationPrintController extends Controller
             'items.allocations.factory',
         ]);
 
-        // Build factory-wise structure
-        $factories = [];
+        /**
+         * Build factory-wise structure
+         * NOTE: use associative array keyed by factory_id first,
+         * then convert to indexed array for usort().
+         */
+        $factoriesById = [];
 
         foreach ($record->items as $item) {
             foreach ($item->allocations as $allocation) {
                 $factoryId = $allocation->factory_id;
-                $factoryName = $allocation->factory->name ?? 'Unknown Factory';
+                $factoryModel = $allocation->factory;
+                $factoryName = $factoryModel?->name ?? 'Unknown Factory';
 
-                if (!isset($factories[$factoryId])) {
-                    $factories[$factoryId] = [
-                        'factory' => $allocation->factory,
+                if (!isset($factoriesById[$factoryId])) {
+                    $factoriesById[$factoryId] = [
+                        'factory' => $factoryModel,
                         'name' => $factoryName,
                         'items' => [],
                         'total_qty' => 0,
@@ -39,7 +44,7 @@ class BuyerOrderFactoryAllocationPrintController extends Controller
                 $unitPrice = (float) ($item->unit_price ?? 0);
                 $amount = $qty * $unitPrice;
 
-                $factories[$factoryId]['items'][] = [
+                $factoriesById[$factoryId]['items'][] = [
                     'line_no' => $item->line_no,
                     'style_ref' => $item->style_ref,
                     'item_description' => $item->item_description,
@@ -51,18 +56,19 @@ class BuyerOrderFactoryAllocationPrintController extends Controller
                     'amount' => $amount,
                 ];
 
-                $factories[$factoryId]['total_qty'] += $qty;
-                $factories[$factoryId]['total_amount'] += $amount;
+                $factoriesById[$factoryId]['total_qty'] += $qty;
+                $factoriesById[$factoryId]['total_amount'] += $amount;
             }
         }
 
-        // Sort factories by name (nice output)
+        // Convert to indexed array + sort factories by name
+        $factories = array_values($factoriesById);
         usort($factories, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         $pdf = Pdf::loadView('pdf.buyer-order-factory-allocation', [
             'record' => $record,
             'factories' => $factories,
-        ])->setPaper('A4', 'portrait');
+        ])->setPaper([0, 0, 595.28, 841.89], 'portrait');
 
         $filename = 'BuyerOrder_FactoryAlloc_' . ($record->order_number ?? $record->id) . '.pdf';
 
