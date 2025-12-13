@@ -3,19 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class ExportBundleDocument extends Model
 {
-    protected $fillable = [
-        'export_bundle_id',
-        'document_type',
-        'document_id',
-        'print_route',
-        'status',
+    protected $guarded = [];
+
+    protected $casts = [
+        'generated_at' => 'datetime',
+        'printed_at' => 'datetime',
     ];
 
-    public function bundle()
+    public function exportBundle()
     {
-        return $this->belongsTo(ExportBundle::class, 'export_bundle_id');
+        return $this->belongsTo(ExportBundle::class);
+    }
+
+    public function documentable(): MorphTo
+    {
+        return $this->morphTo();
     }
 }

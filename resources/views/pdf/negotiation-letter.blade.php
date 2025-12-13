@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Negotiation Letter - {{ $letter->letter_number }}</title>
+    <title>Negotiation Letter - {{ $record->letter_number }}</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -76,22 +76,22 @@
             <table>
                 <tr>
                     <td>
-                        @if ($letter->beneficiaryCompany)
+                        @if ($record->beneficiaryCompany)
                             <div class="company-name">
-                                {{ $letter->beneficiaryCompany->name ?? $letter->beneficiaryCompany->short_name }}
+                                {{ $record->beneficiaryCompany->name ?? $record->beneficiaryCompany->short_name }}
                             </div>
                             <div class="small">
-                                {{ $letter->beneficiaryCompany->address_line_1 ?? '' }}<br>
-                                {{ $letter->beneficiaryCompany->address_line_2 ?? '' }}
+                                {{ $record->beneficiaryCompany->address_line_1 ?? '' }}<br>
+                                {{ $record->beneficiaryCompany->address_line_2 ?? '' }}
                             </div>
                         @endif
                     </td>
                     <td class="text-right">
-                        @if ($letter->letter_date)
-                            {{ $letter->letter_date->format('d M Y') }}
+                        @if ($record->letter_date)
+                            {{ optional($record->letter_date)->format('d M Y') }}
                         @endif
                         <br>
-                        Ref: {{ $letter->letter_number }}
+                        Ref: {{ $record->letter_number }}
                     </td>
                 </tr>
             </table>
@@ -99,10 +99,10 @@
 
         {{-- Bank Address --}}
         <div class="mt-2">
-            <strong>{{ $letter->bank_name }}</strong><br>
-            {{ $letter->bank_branch }}<br>
-            @if ($letter->swift_code)
-                SWIFT: {{ $letter->swift_code }}<br>
+            <strong>{{ $record->bank_name ?? '-' }}</strong><br>
+            {{ $record->bank_branch ?? '' }}<br>
+            @if (!empty($record->swift_code))
+                SWIFT: {{ $record->swift_code }}<br>
             @endif
         </div>
 
@@ -120,54 +120,67 @@
             We are submitting herewith export documents for negotiation against:
         </div>
 
+        @php
+            // ✅ Correct buyer from Commercial Invoice
+            $buyer = $record->commercialInvoice?->customer;
+
+            // ✅ LC number: use lcReceive if you have relation, otherwise show linked lc_receive_id if exists
+            $lcNo = $record->lcReceive?->lc_number ?? null;
+        @endphp
+
         <div class="mt-2">
             <table>
                 <tr>
                     <td style="width: 30%;">Customer (Buyer)</td>
                     <td style="width: 70%;">
-                        : {{ $letter->customer?->name }}
+                        : {{ $buyer?->name ?? '-' }}
                     </td>
                 </tr>
+
                 <tr>
                     <td>LC No.</td>
                     <td>
-                        : {{ $letter->lcReceive?->lc_number }}
+                        : {{ $lcNo ?? '-' }}
                     </td>
                 </tr>
+
                 <tr>
                     <td>Commercial Invoice No.</td>
                     <td>
-                        : {{ $letter->commercialInvoice?->invoice_number }}
-                        @if ($letter->commercialInvoice?->invoice_date)
-                            dated {{ $letter->commercialInvoice->invoice_date->format('d M Y') }}
+                        : {{ $record->commercialInvoice?->invoice_number ?? '-' }}
+                        @if ($record->commercialInvoice?->invoice_date)
+                            dated {{ optional($record->commercialInvoice->invoice_date)->format('d M Y') }}
                         @endif
                     </td>
                 </tr>
+
                 <tr>
                     <td>Invoice Amount</td>
                     <td>
-                        : {{ $letter->currency?->code }}
-                        {{ number_format($letter->invoice_amount ?? 0, 2) }}
+                        : {{ $record->currency?->code ?? '' }}
+                        {{ number_format((float) ($record->invoice_amount ?? 0), 2) }}
                     </td>
                 </tr>
+
                 <tr>
                     <td>Deductions</td>
                     <td>
-                        : {{ $letter->currency?->code }}
-                        {{ number_format($letter->deductions ?? 0, 2) }}
+                        : {{ $record->currency?->code ?? '' }}
+                        {{ number_format((float) ($record->deductions ?? 0), 2) }}
                     </td>
                 </tr>
+
                 <tr>
                     <td><strong>Net Payable</strong></td>
                     <td>
-                        : <strong>{{ $letter->currency?->code }}
-                            {{ number_format($letter->net_payable_amount ?? 0, 2) }}</strong>
+                        : <strong>{{ $record->currency?->code ?? '' }}
+                            {{ number_format((float) ($record->net_payable_amount ?? 0), 2) }}</strong>
                     </td>
                 </tr>
             </table>
         </div>
 
-        {{-- Enclosed documents (generic text) --}}
+        {{-- Enclosed documents --}}
         <div class="mt-3">
             The following documents are enclosed herewith for negotiation / collection:
         </div>
@@ -180,9 +193,9 @@
         </div>
 
         {{-- Custom remarks --}}
-        @if ($letter->remarks)
+        @if (!empty($record->remarks))
             <div class="mt-3">
-                {!! nl2br(e($letter->remarks)) !!}
+                {!! nl2br(e($record->remarks)) !!}
             </div>
         @endif
 
@@ -194,9 +207,7 @@
         {{-- Signature --}}
         <div class="signature-box">
             For and on behalf of<br>
-            @if ($letter->beneficiaryCompany)
-                {{ $letter->beneficiaryCompany->name ?? $letter->beneficiaryCompany->short_name }}
-            @endif
+            {{ $record->beneficiaryCompany?->name ?? ($record->beneficiaryCompany?->short_name ?? '') }}
             <br><br><br>
             _______________________________<br>
             Authorised Signatory

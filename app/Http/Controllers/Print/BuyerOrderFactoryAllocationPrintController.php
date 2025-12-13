@@ -14,14 +14,10 @@ class BuyerOrderFactoryAllocationPrintController extends Controller
             'customer',
             'beneficiaryCompany',
             'items',
-            'items.allocations.factory',
+            'items.allocations.factory.country', // ✅ needed for factory country in PDF
         ]);
 
-        /**
-         * Build factory-wise structure
-         * NOTE: use associative array keyed by factory_id first,
-         * then convert to indexed array for usort().
-         */
+        // ✅ Build factory-wise structure
         $factoriesById = [];
 
         foreach ($record->items as $item) {
@@ -61,14 +57,14 @@ class BuyerOrderFactoryAllocationPrintController extends Controller
             }
         }
 
-        // Convert to indexed array + sort factories by name
+        // ✅ Convert to indexed array + sort by name
         $factories = array_values($factoriesById);
         usort($factories, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         $pdf = Pdf::loadView('pdf.buyer-order-factory-allocation', [
             'record' => $record,
-            'factories' => $factories,
-        ])->setPaper([0, 0, 595.28, 841.89], 'portrait');
+            'factories' => $factories, // ✅ THIS fixes your error
+        ])->setPaper('A4', 'portrait');
 
         $filename = 'BuyerOrder_FactoryAlloc_' . ($record->order_number ?? $record->id) . '.pdf';
 

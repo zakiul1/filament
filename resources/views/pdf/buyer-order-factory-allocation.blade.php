@@ -92,10 +92,15 @@
             page-break-before: always;
         }
     </style>
-
 </head>
 
 <body>
+
+    @php
+        // ✅ Prevent "Undefined variable $factories"
+        $factories = $factories ?? [];
+    @endphp
+
     {{-- Header --}}
     <div class="box">
         <table class="header-table">
@@ -128,9 +133,9 @@
 
     @forelse($factories as $idx => $fx)
         @php
-            $factory = $fx['factory'];
-            $grandQty += (float) $fx['total_qty'];
-            $grandAmount += (float) $fx['total_amount'];
+            $factory = $fx['factory'] ?? null;
+            $grandQty += (float) ($fx['total_qty'] ?? 0);
+            $grandAmount += (float) ($fx['total_amount'] ?? 0);
         @endphp
 
         <div class="box" style="margin-bottom:10px;">
@@ -138,22 +143,22 @@
                 <tr>
                     <td>
                         <div class="small muted">Factory</div>
-                        <div style="font-weight:700; font-size:14px;">{{ $fx['name'] }}</div>
+                        <div style="font-weight:700; font-size:14px;">{{ $fx['name'] ?? '-' }}</div>
                         <div class="small muted">
                             {{ $factory->address_line_1 ?? '' }}
-                            {{ $factory->city ? ', ' . $factory->city : '' }}
-                            {{ $factory->country?->name ? ', ' . $factory->country->name : '' }}
+                            {{ $factory?->city ? ', ' . $factory->city : '' }}
+                            {{ $factory?->country?->name ? ', ' . $factory->country->name : '' }}
                         </div>
                     </td>
                     <td style="text-align:right; width:220px;">
                         <div class="small">
                             <div>
                                 <span class="muted">Total Qty:</span>
-                                <strong>{{ number_format((float) $fx['total_qty'], 0) }}</strong>
+                                <strong>{{ number_format((float) ($fx['total_qty'] ?? 0), 0) }}</strong>
                             </div>
                             <div>
                                 <span class="muted">Total Amount:</span>
-                                <strong>{{ number_format((float) $fx['total_amount'], 2) }}</strong>
+                                <strong>{{ number_format((float) ($fx['total_amount'] ?? 0), 2) }}</strong>
                             </div>
                         </div>
                     </td>
@@ -177,7 +182,7 @@
             </thead>
 
             <tbody>
-                @foreach ($fx['items'] as $row)
+                @foreach ($fx['items'] ?? [] as $row)
                     <tr>
                         <td class="center">{{ $row['line_no'] ?? '-' }}</td>
                         <td>{{ $row['style_ref'] ?? '-' }}</td>
@@ -185,9 +190,9 @@
                         <td>{{ $row['color'] ?? '-' }}</td>
                         <td>{{ $row['size'] ?? '-' }}</td>
                         <td>{{ $row['unit'] ?? '-' }}</td>
-                        <td class="right">{{ number_format((float) $row['qty'], 0) }}</td>
-                        <td class="right">{{ number_format((float) $row['unit_price'], 2) }}</td>
-                        <td class="right">{{ number_format((float) $row['amount'], 2) }}</td>
+                        <td class="right">{{ number_format((float) ($row['qty'] ?? 0), 0) }}</td>
+                        <td class="right">{{ number_format((float) ($row['unit_price'] ?? 0), 2) }}</td>
+                        <td class="right">{{ number_format((float) ($row['amount'] ?? 0), 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -195,9 +200,9 @@
             <tfoot>
                 <tr>
                     <th colspan="6" class="right">Factory Total</th>
-                    <th class="right">{{ number_format((float) $fx['total_qty'], 0) }}</th>
+                    <th class="right">{{ number_format((float) ($fx['total_qty'] ?? 0), 0) }}</th>
                     <th></th>
-                    <th class="right">{{ number_format((float) $fx['total_amount'], 2) }}</th>
+                    <th class="right">{{ number_format((float) ($fx['total_amount'] ?? 0), 2) }}</th>
                 </tr>
             </tfoot>
         </table>
@@ -229,6 +234,7 @@
             </tr>
         </table>
     </div>
+
 </body>
 
 </html>

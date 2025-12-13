@@ -2,21 +2,54 @@
 
 namespace App\Http\Controllers\Print;
 
-use App\Http\Controllers\Controller;
 use App\Models\BuyerOrder;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 
-class BuyerOrderSummaryPrintController extends Controller
+class BuyerOrderSummaryPrintController extends BaseDocumentPrintController
 {
+    /**
+     * ✅ Keep compatibility with routes that call ->show()
+     */
     public function show(BuyerOrder $buyerOrder)
     {
-        $record = $buyerOrder->load([
+        // If your BaseDocumentPrintController has __invoke(), this will work.
+        return $this->__invoke($buyerOrder);
+    }
+
+    protected function getView(): string
+    {
+        return 'pdf.buyer-order-summary';
+    }
+
+    protected function getFileName($record): string
+    {
+        return 'BuyerOrderSummary_' . ($record->order_number ?? $record->id) . '.pdf';
+    }
+
+    protected function getRelations(): array
+    {
+        return [
             'customer',
             'beneficiaryCompany',
             'items',
-        ]);
+        ];
+    }
 
+    /**
+     * If your BaseDocumentPrintController supports paper options.
+     * If not, you can ignore/remove this method.
+     */
+    protected function getPaper(): array
+    {
+        return ['A4', 'portrait'];
+    }
+
+    /**
+     * ✅ Extra data for the Blade view (summary + factoryRows)
+     * Your BaseDocumentPrintController MUST call this and merge into view data.
+     */
+    protected function getExtraViewData($record): array
+    {
         $orderId = $record->id;
 
         $totalStyles = (int) $record->items->count();
@@ -56,14 +89,9 @@ class BuyerOrderSummaryPrintController extends Controller
             'order_value' => $orderValue,
         ];
 
-        $pdf = Pdf::loadView('pdf.buyer-order-summary', [
-            'record' => $record,
+        return [
             'summary' => $summary,
             'factoryRows' => $factoryRows,
-        ])->setPaper('A4', 'portrait');
-
-        $filename = 'BuyerOrderSummary_' . ($record->order_number ?? $record->id) . '.pdf';
-
-        return $pdf->stream($filename);
+        ];
     }
 }

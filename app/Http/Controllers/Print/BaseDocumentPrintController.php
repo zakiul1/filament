@@ -2,34 +2,41 @@
 
 namespace App\Http\Controllers\Print;
 
+use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Response;
+use Illuminate\Database\Eloquent\Model;
 
-abstract class BaseDocumentPrintController
+abstract class BaseDocumentPrintController extends Controller
 {
     /**
-     * Must be implemented by each document type.
+     * Support invokable controller routes:
+     * Route::get('/xxx/{model}/print', Controller::class)
      */
-    abstract protected function getView(): string;
-    abstract protected function getFileName($record): string;
-    abstract protected function getRelations(): array;
+    public function __invoke(Model $record)
+    {
+        return $this->streamPdf($record);
+    }
 
     /**
-     * Shared print logic reused by ALL document types.
+     * Use this from controllers that have ->show()
      */
-    public function print($record): Response
+    protected function streamPdf(Model $record)
     {
-        // Load required relationships
-        if (!empty($this->getRelations())) {
-            $record->load($this->getRelations());
-        }
+        $record->load($this->getRelations());
 
-        // Render PDF using view + data
         $pdf = Pdf::loadView($this->getView(), [
-            'record' => $record
-        ])->setPaper('a4');
+            'record' => $record,
+        ])->setPaper('A4', 'portrait');
 
-        // Stream back to browser
         return $pdf->stream($this->getFileName($record));
+    }
+
+    abstract protected function getView(): string;
+
+    abstract protected function getFileName(Model $record): string;
+
+    protected function getRelations(): array
+    {
+        return [];
     }
 }

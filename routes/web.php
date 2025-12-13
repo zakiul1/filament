@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\Print\LcTransferLetterPrintController;
-use App\Http\Controllers\Print\LcTransferPrintController;
+use App\Http\Controllers\Print\ExportBundlePrintAllController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -75,9 +74,14 @@ use App\Livewire\Admin\Trade\BuyerOrderEdit;
 use App\Livewire\Admin\Trade\BuyerOrderItemAllocationsPage;
 use App\Livewire\Admin\Trade\BuyerOrderSummaryPage;
 
+use App\Livewire\Admin\Trade\ExportBundlesPage;
+use App\Livewire\Admin\Trade\ExportBundleCreate;
+use App\Livewire\Admin\Trade\ExportBundleView;
+
 use App\Livewire\Admin\Reports\TradeReportsPage;
 use App\Livewire\Admin\Reports\BuyerOrderSummarySelectPage;
 use App\Livewire\Admin\Reports\BuyerOrderSummaryPage as ReportsBuyerOrderSummaryPage;
+use App\Livewire\Admin\Reports\BuyerOrderFactoryAllocationSelectPage;
 
 use App\Http\Controllers\Print\ProformaInvoicePrintController;
 use App\Http\Controllers\Print\CommercialInvoicePrintController;
@@ -88,17 +92,12 @@ use App\Http\Controllers\Print\BillOfExchangePrintController;
 use App\Http\Controllers\Print\NegotiationLetterPrintController;
 use App\Http\Controllers\Print\SampleInvoicePrintController;
 
-
-use App\Livewire\Admin\Trade\ExportBundlesPage;
-use App\Livewire\Admin\Trade\ExportBundleCreate;
-use App\Livewire\Admin\Trade\ExportBundleView;
-
-
 use App\Http\Controllers\Print\BuyerOrderPrintController;
 use App\Http\Controllers\Print\BuyerOrderSummaryPrintController;
 use App\Http\Controllers\Print\BuyerOrderFactoryAllocationPrintController;
 
-use App\Livewire\Admin\Reports\BuyerOrderFactoryAllocationSelectPage;
+use App\Http\Controllers\Print\LcTransferPrintController;
+use App\Http\Controllers\Print\LcTransferLetterPrintController;
 
 /*
 |--------------------------------------------------------------------------
@@ -177,8 +176,10 @@ Route::middleware(['auth'])
             Route::get('/banks', BanksPage::class)->name('banks.index');
             Route::get('/bank-branches', BankBranchesPage::class)->name('bank-branches.index');
 
-            Route::get('/beneficiary-companies', BeneficiaryCompaniesPage::class)->name('beneficiary-companies.index');
-            Route::get('/beneficiary-bank-accounts', BeneficiaryBankAccountsPage::class)->name('beneficiary-bank-accounts.index');
+            Route::get('/beneficiary-companies', BeneficiaryCompaniesPage::class)
+                ->name('beneficiary-companies.index');
+            Route::get('/beneficiary-bank-accounts', BeneficiaryBankAccountsPage::class)
+                ->name('beneficiary-bank-accounts.index');
 
             Route::get('/couriers', CouriersPage::class)->name('couriers.index');
             Route::get('/customers', CustomersPage::class)->name('customers.index');
@@ -216,6 +217,10 @@ Route::middleware(['auth'])
             Route::get('/lc-transfers', LcTransfersPage::class)->name('lc-transfers.index');
             Route::get('/lc-transfers/create', LcTransferCreate::class)->name('lc-transfers.create');
             Route::get('/lc-transfers/{lcTransfer}/edit', LcTransferEdit::class)->name('lc-transfers.edit');
+            Route::get('/lc-transfers/{lcTransfer}/print', [LcTransferPrintController::class, 'show'])
+                ->name('lc-transfers.print');
+            Route::get('/lc-transfers/{lcTransfer}/letter/print', [LcTransferLetterPrintController::class, 'show'])
+                ->name('lc-transfers.letter.print');
 
             // LC Amendments
             Route::get('/lc-amendments', LcAmendmentsPage::class)->name('lc-amendments.index');
@@ -249,8 +254,14 @@ Route::middleware(['auth'])
             Route::get('/negotiation-letters', NegotiationLettersPage::class)->name('negotiation-letters.index');
             Route::get('/negotiation-letters/create', NegotiationLetterCreate::class)->name('negotiation-letters.create');
             Route::get('/negotiation-letters/{record}/edit', NegotiationLetterEdit::class)->name('negotiation-letters.edit');
-            Route::get('/negotiation-letters/{negotiationLetter}/print', [NegotiationLetterPrintController::class, 'show'])
-                ->name('negotiation-letters.print');
+            Route::get(
+                '/negotiation-letters/{negotiationLetter}/print',
+                [NegotiationLetterPrintController::class, 'show']
+            )->name('negotiation-letters.print');
+
+
+
+
 
             // Sample Invoices
             Route::get('/sample-invoices', SampleInvoicesPage::class)->name('sample-invoices.index');
@@ -270,28 +281,21 @@ Route::middleware(['auth'])
             Route::get('/buyer-orders/{buyerOrder}/print', [BuyerOrderPrintController::class, 'show'])
                 ->name('buyer-orders.print');
 
-            // ✅ Buyer Order Summary (Trade) — unified parameter {buyerOrder}
             Route::get('/buyer-orders/{buyerOrder}/summary', BuyerOrderSummaryPage::class)
                 ->name('buyer-orders.summary.show');
-
             Route::get('/buyer-orders/{buyerOrder}/summary/print', [BuyerOrderSummaryPrintController::class, 'show'])
                 ->name('buyer-orders.summary.print');
 
             Route::get('/buyer-orders/{buyerOrder}/factory-allocation/print', [BuyerOrderFactoryAllocationPrintController::class, 'show'])
                 ->name('buyer-orders.factory-allocation.print');
-            Route::get('/lc-transfers/{lcTransfer}/print', [LcTransferPrintController::class, 'show'])
-                ->name('lc-transfers.print');
 
-
-
-            Route::get('/lc-transfers/{lcTransfer}/letter/print', [LcTransferLetterPrintController::class, 'show'])
-                ->name('lc-transfers.letter.print');
-
-
-
+            // ✅ Export Bundles
             Route::get('/export-bundles', ExportBundlesPage::class)->name('export-bundles.index');
             Route::get('/export-bundles/create', ExportBundleCreate::class)->name('export-bundles.create');
-            Route::get('/export-bundles/{record}', ExportBundleView::class)->name('export-bundles.show');
+            Route::get('/export-bundles/{exportBundle}', ExportBundleView::class)->name('export-bundles.show');
+            Route::get('/export-bundles/{exportBundle}/print-all', [ExportBundlePrintAllController::class, 'zip'])
+                ->name('export-bundles.print-all');
+
 
         });
 
@@ -314,7 +318,8 @@ Route::middleware(['auth'])
 
             Route::get('/buyer-orders/{buyerOrder}/summary/print', [BuyerOrderSummaryPrintController::class, 'show'])
                 ->name('buyer-orders.summary.print');
-            // ✅ Factory Allocation (select + print)
+
+            // Factory Allocation (select + print)
             Route::get('/buyer-orders/factory-allocation', BuyerOrderFactoryAllocationSelectPage::class)
                 ->name('buyer-orders.factory-allocation.select');
 

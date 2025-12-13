@@ -28,4 +28,10 @@ class ExportBundle extends Model
     {
         return $this->hasMany(ExportBundleDocument::class);
     }
+
+    // Helpful: get document row by key (CI, PL, NL, BOE_ONE, BOE_TWO)
+    public function doc(string $key): ?ExportBundleDocument
+    {
+        return $this->documents->firstWhere('doc_key', $key);
+    }
 }

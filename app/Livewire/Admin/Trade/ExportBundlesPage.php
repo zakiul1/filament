@@ -7,6 +7,8 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\Action;
+
 use Filament\Actions\EditAction;
 use Filament\Support\Contracts\TranslatableContentDriver;
 use Filament\Tables;
@@ -14,14 +16,18 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
-class ExportBundlesPage extends Component implements HasTable, HasActions
+
+class ExportBundlesPage extends Component implements HasTable, HasActions, HasSchemas
 {
     use InteractsWithTable;
     use InteractsWithActions;
+    use InteractsWithSchemas;
 
     // Filament v4 translation driver requirement
     public function makeFilamentTranslatableContentDriver(): ?TranslatableContentDriver
@@ -71,10 +77,12 @@ class ExportBundlesPage extends Component implements HasTable, HasActions
                     ->url(fn() => route('admin.trade.export-bundles.create')),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
+                Action::make('view')
                     ->label('Open')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn(ExportBundle $record) => route('admin.trade.export-bundles.show', ['record' => $record->id])),
+                    ->url(fn(ExportBundle $record) => route('admin.trade.export-bundles.show', ['exportBundle' => $record->id]))
+
+                ,
 
                 DeleteAction::make(),
             ])

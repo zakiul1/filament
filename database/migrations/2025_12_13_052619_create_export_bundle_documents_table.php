@@ -1,6 +1,5 @@
 <?php
 
-// database/migrations/xxxx_xx_xx_create_export_bundle_documents_table.php
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,14 +14,26 @@ return new class extends Migration {
                 ->constrained('export_bundles')
                 ->cascadeOnDelete();
 
-            $table->string('document_type', 50); // commercial_invoice, packing_list, boe_1, boe_2, negotiation
-            $table->unsignedBigInteger('document_id')->nullable(); // if you want to store linked record IDs
-            $table->string('print_route', 150)->nullable();         // e.g. admin.trade.commercial-invoices.print
-            $table->string('status', 30)->default('ready');         // ready/missing
+            // Document type key for UI grouping (CI, PL, NL, BOE_ONE, BOE_TWO)
+            $table->string('doc_key', 30);
+
+            // Polymorphic link to any document model
+            $table->morphs('documentable'); // documentable_type + documentable_id
+
+            $table->string('status', 30)->default('draft'); // draft/generated/printed/archived
+            $table->timestamp('generated_at')->nullable();
+            $table->timestamp('printed_at')->nullable();
+            $table->unsignedInteger('print_count')->default(0);
+
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
 
             $table->timestamps();
 
-            $table->unique(['export_bundle_id', 'document_type']);
+            // Prevent duplicates in same bundle (example: one PL per bundle)
+            $table->unique(['export_bundle_id', 'doc_key']);
+
+            $table->index(['export_bundle_id', 'doc_key']);
         });
     }
 

@@ -2,24 +2,32 @@
 
 namespace App\Http\Controllers\Print;
 
-use App\Http\Controllers\Controller;
 use App\Models\NegotiationLetter;
-use Barryvdh\DomPDF\Facade\Pdf;
 
-class NegotiationLetterPrintController extends Controller
+class NegotiationLetterPrintController extends BaseDocumentPrintController
 {
+    // ✅ Keeps compatibility with routes using ->show()
     public function show(NegotiationLetter $negotiationLetter)
     {
-        $record = $negotiationLetter->load([
+        return $this->__invoke($negotiationLetter);
+    }
+
+    protected function getView(): string
+    {
+        return 'pdf.negotiation-letter';
+    }
+
+    protected function getFileName($record): string
+    {
+        return 'NegotiationLetter_' . $record->letter_number . '.pdf';
+    }
+
+    protected function getRelations(): array
+    {
+        return [
             'commercialInvoice.customer',
             'beneficiaryCompany',
             'currency',
-        ]);
-
-        $pdf = Pdf::loadView('pdf.negotiation-letter', [
-            'record' => $record,
-        ])->setPaper('A4');
-
-        return $pdf->stream('NegotiationLetter_' . $record->letter_number . '.pdf');
+        ];
     }
 }

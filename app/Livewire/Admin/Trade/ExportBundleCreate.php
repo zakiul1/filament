@@ -64,11 +64,12 @@ class ExportBundleCreate extends Component implements HasSchemas
             'data.commercial_invoice_id' => ['required', 'integer', 'exists:commercial_invoices,id'],
         ]);
 
+        /** @var ExportBundle $bundle */
         $bundle = DB::transaction(function () use ($state) {
+
             $nextNumber = (int) (ExportBundle::max('id') ?? 0) + 1;
             $bundleNo = 'EXP-' . str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
 
-            /** @var ExportBundle $bundle */
             $bundle = ExportBundle::create([
                 'commercial_invoice_id' => $state['commercial_invoice_id'],
                 'bundle_no' => $bundleNo,
@@ -78,36 +79,40 @@ class ExportBundleCreate extends Component implements HasSchemas
                 'updated_by' => Auth::id(),
             ]);
 
+            // ✅ Registry rows using your new structure
             $docs = [
-                [
-                    'document_type' => 'commercial_invoice',
-                    'print_route' => 'admin.trade.commercial-invoices.print',
-                    'status' => 'ready',
-                ],
-                [
-                    'document_type' => 'packing_list',
-                    'print_route' => 'admin.trade.packing-lists.print',
-                    'status' => 'ready',
-                ],
-                [
-                    'document_type' => 'bill_of_exchange',
-                    'print_route' => 'admin.trade.bill-of-exchanges.print',
-                    'status' => 'ready',
-                ],
-                [
-                    'document_type' => 'negotiation_letter',
-                    'print_route' => 'admin.trade.negotiation-letters.print',
-                    'status' => 'ready',
-                ],
+                'commercial_invoice',
+                'packing_list',
+                'negotiation_letter',
+                'boe_one',
+                'boe_two',
             ];
 
-            foreach ($docs as $doc) {
+            foreach ($docs as $key) {
+
+                // only CI is linked immediately, others are missing for now
+                $docType = null;
+                $docId = null;
+                $status = 'missing';
+                $generatedAt = null;
+
+                if ($key === 'commercial_invoice') {
+                    $docType = CommercialInvoice::class;
+                    $docId = (int) $state['commercial_invoice_id'];
+                    $status = 'ready';
+                    $generatedAt = now();
+                }
+
                 ExportBundleDocument::create([
                     'export_bundle_id' => $bundle->id,
-                    'document_type' => $doc['document_type'],
-                    'document_id' => null, // we are reusing CI id when printing
-                    'print_route' => $doc['print_route'],
-                    'status' => $doc['status'],
+                    'doc_key' => $key,
+                    'documentable_type' => $docType,
+                    'documentable_id' => $docId,
+                    'status' => $status,
+                    'generated_at' => $generatedAt,
+                    'print_count' => 0,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
                 ]);
             }
 

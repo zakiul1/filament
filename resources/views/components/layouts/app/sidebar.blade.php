@@ -194,6 +194,13 @@
                     :current="request()->routeIs('admin.reports.buyer-orders.factory-allocation.*')" wire:navigate>
                     {{ __('Factory Allocation') }}
                 </flux:navlist.item>
+
+                {{-- ✅ Export Bundles --}}
+                <flux:navlist.item icon="archive-box" :href="route('admin.trade.export-bundles.index')"
+                    :current="request()->routeIs('admin.trade.export-bundles.*')" wire:navigate>
+                    {{ __('Export Bundles') }}
+                </flux:navlist.item>
+
             </flux:navlist.group>
 
 

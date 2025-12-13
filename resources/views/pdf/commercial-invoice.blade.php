@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Commercial Invoice {{ $invoice->invoice_number }}</title>
+    <title>Commercial Invoice - {{ $record->invoice_number }}</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -37,26 +37,26 @@
     <table>
         <tr>
             <td>
-                <strong>Invoice No:</strong> {{ $invoice->invoice_number }}<br>
-                <strong>Date:</strong> {{ optional($invoice->invoice_date)->format('d M, Y') }}
+                <strong>Invoice No:</strong> {{ $record->invoice_number }}<br>
+                <strong>Date:</strong> {{ optional($record->invoice_date)->format('d M, Y') }}
             </td>
             <td>
                 <strong>Beneficiary:</strong>
-                {{ optional($invoice->beneficiaryCompany)->display_name ?? optional($invoice->beneficiaryCompany)->name }}<br>
-                <strong>Currency:</strong> {{ optional($invoice->currency)->code }}
+                {{ optional($record->beneficiaryCompany)->display_name ?? optional($record->beneficiaryCompany)->name }}<br>
+                <strong>Currency:</strong> {{ optional($record->currency)->code }}
             </td>
         </tr>
         <tr>
             <td>
                 <strong>Buyer:</strong><br>
-                {{ optional($invoice->customer)->name }}<br>
-                {{ optional($invoice->customer)->full_address }}
+                {{ optional($record->customer)->name }}<br>
+                {{ optional($record->customer)->full_address }}
             </td>
             <td>
-                <strong>Incoterm:</strong> {{ optional($invoice->incoterm)->code }}<br>
-                <strong>Shipment Mode:</strong> {{ optional($invoice->shipmentMode)->name }}<br>
-                <strong>Port of Loading:</strong> {{ optional($invoice->portOfLoading)->name }}<br>
-                <strong>Port of Discharge:</strong> {{ optional($invoice->portOfDischarge)->name }}
+                <strong>Incoterm:</strong> {{ optional($record->incoterm)->code }}<br>
+                <strong>Shipment Mode:</strong> {{ optional($record->shipmentMode)->name }}<br>
+                <strong>Port of Loading:</strong> {{ optional($record->portOfLoading)->name }}<br>
+                <strong>Port of Discharge:</strong> {{ optional($record->portOfDischarge)->name }}
             </td>
         </tr>
     </table>
@@ -78,7 +78,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($invoice->items as $i => $item)
+            @foreach ($record->items as $i => $item)
                 <tr>
                     <td class="text-center">{{ $i + 1 }}</td>
                     <td>{{ $item->style_ref }}</td>
@@ -95,12 +95,12 @@
         <tfoot>
             <tr>
                 <th colspan="8" class="text-right">Total</th>
-                <th class="text-right">{{ number_format($invoice->total_amount, 2) }}</th>
+                <th class="text-right">{{ number_format($record->total_amount, 2) }}</th>
             </tr>
         </tfoot>
     </table>
 
-    <p><strong>Amount in words:</strong> {{ $invoice->total_amount_in_words }}</p>
+    <p><strong>Amount in words:</strong> {{ $record->total_amount_in_words }}</p>
 
     <p style="margin-top:60px; text-align:right;">
         ___________________________<br>
