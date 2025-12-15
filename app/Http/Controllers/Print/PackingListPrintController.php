@@ -2,27 +2,30 @@
 
 namespace App\Http\Controllers\Print;
 
-use App\Http\Controllers\Controller;
 use App\Models\PackingList;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Model;
 
-class PackingListPrintController extends Controller
+class PackingListPrintController extends BaseDocumentPrintController
 {
-    public function show(PackingList $packingList)
+    protected function getView(): string
     {
-        $record = $packingList->load([
+        return 'pdf.packing-list';
+    }
+
+    protected function getFileName(Model $record): string
+    {
+        /** @var PackingList $record */
+        $no = $record->pl_number ?? $record->id;
+
+        return 'PackingList_' . $no . '.pdf';
+    }
+
+    protected function getRelations(): array
+    {
+        return [
             'items',
             'commercialInvoice.customer.country',
             'beneficiaryCompany',
-        ]);
-
-        $pdf = Pdf::loadView('pdf.packing-list', [
-            'record' => $record,
-        ])->setPaper('A4', 'portrait');
-
-        $filename = 'PackingList_' . ($record->pl_number ?? $record->id) . '.pdf';
-
-        return $pdf->stream($filename);
-        // or ->download($filename);
+        ];
     }
 }

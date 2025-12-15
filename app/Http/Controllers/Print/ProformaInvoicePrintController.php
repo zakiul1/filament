@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Print;
 
 use App\Models\ProformaInvoice;
+use Illuminate\Database\Eloquent\Model;
 
 class ProformaInvoicePrintController extends BaseDocumentPrintController
 {
@@ -11,9 +12,12 @@ class ProformaInvoicePrintController extends BaseDocumentPrintController
         return 'pdf.proforma-invoice';
     }
 
-    protected function getFileName($record): string
+    protected function getFileName(Model $record): string
     {
-        return 'PI-' . $record->pi_number . '.pdf';
+        /** @var ProformaInvoice $record */
+        $no = $record->pi_number ?? $record->id;
+
+        return 'PI-' . $no . '.pdf';
     }
 
     protected function getRelations(): array
@@ -26,7 +30,7 @@ class ProformaInvoicePrintController extends BaseDocumentPrintController
             'shipmentMode',
             'portOfLoading',
             'portOfDischarge',
-            'items'
+            'items',
         ];
     }
 }

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Print;
 
+use App\Models\LcReceive;
+use Illuminate\Database\Eloquent\Model;
+
 class LcReceivePrintController extends BaseDocumentPrintController
 {
     protected function getView(): string
@@ -9,9 +12,12 @@ class LcReceivePrintController extends BaseDocumentPrintController
         return 'pdf.lc-receive';
     }
 
-    protected function getFileName($record): string
+    protected function getFileName(Model $record): string
     {
-        return 'LC-' . $record->lc_number . '.pdf';
+        /** @var LcReceive $record */
+        $no = $record->lc_number ?? $record->id;
+
+        return 'LC-' . $no . '.pdf';
     }
 
     protected function getRelations(): array
@@ -25,7 +31,7 @@ class LcReceivePrintController extends BaseDocumentPrintController
             'incoterm',
             'shipmentMode',
             'portOfLoading',
-            'portOfDischarge'
+            'portOfDischarge',
         ];
     }
 }

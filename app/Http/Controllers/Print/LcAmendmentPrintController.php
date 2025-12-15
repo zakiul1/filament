@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Print;
 
+use App\Models\LcAmendment;
+use Illuminate\Database\Eloquent\Model;
+
 class LcAmendmentPrintController extends BaseDocumentPrintController
 {
     protected function getView(): string
@@ -9,9 +12,12 @@ class LcAmendmentPrintController extends BaseDocumentPrintController
         return 'pdf.lc-amendment';
     }
 
-    protected function getFileName($record): string
+    protected function getFileName(Model $record): string
     {
-        return 'LCA-' . $record->amendment_number . '.pdf';
+        /** @var LcAmendment $record */
+        $no = $record->amendment_number ?? $record->id;
+
+        return 'LCA-' . $no . '.pdf';
     }
 
     protected function getRelations(): array

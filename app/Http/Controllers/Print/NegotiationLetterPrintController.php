@@ -3,23 +3,21 @@
 namespace App\Http\Controllers\Print;
 
 use App\Models\NegotiationLetter;
+use Illuminate\Database\Eloquent\Model;
 
 class NegotiationLetterPrintController extends BaseDocumentPrintController
 {
-    // ✅ Keeps compatibility with routes using ->show()
-    public function show(NegotiationLetter $negotiationLetter)
-    {
-        return $this->__invoke($negotiationLetter);
-    }
-
     protected function getView(): string
     {
         return 'pdf.negotiation-letter';
     }
 
-    protected function getFileName($record): string
+    protected function getFileName(Model $record): string
     {
-        return 'NegotiationLetter_' . $record->letter_number . '.pdf';
+        /** @var NegotiationLetter $record */
+        $no = $record->letter_number ?? $record->id;
+
+        return 'NegotiationLetter_' . $no . '.pdf';
     }
 
     protected function getRelations(): array

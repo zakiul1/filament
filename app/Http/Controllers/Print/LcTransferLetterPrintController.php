@@ -2,38 +2,50 @@
 
 namespace App\Http\Controllers\Print;
 
-use App\Http\Controllers\Controller;
 use App\Models\LcTransfer;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Model;
 
-class LcTransferLetterPrintController extends Controller
+class LcTransferLetterPrintController extends BaseDocumentPrintController
 {
-    public function show(LcTransfer $lcTransfer)
+    protected function getView(): string
     {
-        $record = $lcTransfer->load([
+        return 'pdf.lc-transfer-letter';
+    }
+
+    protected function getFileName(Model $record): string
+    {
+        /** @var LcTransfer $record */
+        return 'LC_Transfer_Letter_' . ($record->transfer_no ?? $record->id) . '.pdf';
+    }
+
+    protected function getRelations(): array
+    {
+        return [
             'factory.country',
             'currency',
             'lcReceive.customer',
-            'lcReceive.customerBank.bankBranch.bank',   // ✅ IMPORTANT
+            'lcReceive.customerBank.bankBranch.bank',
             'lcReceive.beneficiaryCompany',
             'lcReceive.beneficiaryBankAccount',
             'lcReceive.currency',
             'lcReceive.proformaInvoice.items',
-        ]);
+        ];
+    }
 
+    /**
+     * Extra data needed by the Blade
+     */
+    protected function getExtraViewData(Model $record): array
+    {
+        /** @var LcTransfer $record */
         $lc = $record->lcReceive;
         $pi = $lc?->proformaInvoice;
         $items = $pi?->items ?? collect();
 
-        $pdf = Pdf::loadView('pdf.lc-transfer-letter', [
-            'record' => $record,
+        return [
             'lc' => $lc,
             'pi' => $pi,
             'items' => $items,
-        ])->setPaper('a4', 'portrait');
-
-        $filename = 'LC_Transfer_Letter_' . ($record->transfer_no ?? $record->id) . '.pdf';
-
-        return $pdf->stream($filename);
+        ];
     }
 }

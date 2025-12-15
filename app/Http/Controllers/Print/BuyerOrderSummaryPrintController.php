@@ -3,26 +3,19 @@
 namespace App\Http\Controllers\Print;
 
 use App\Models\BuyerOrder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class BuyerOrderSummaryPrintController extends BaseDocumentPrintController
 {
-    /**
-     * ✅ Keep compatibility with routes that call ->show()
-     */
-    public function show(BuyerOrder $buyerOrder)
-    {
-        // If your BaseDocumentPrintController has __invoke(), this will work.
-        return $this->__invoke($buyerOrder);
-    }
-
     protected function getView(): string
     {
         return 'pdf.buyer-order-summary';
     }
 
-    protected function getFileName($record): string
+    protected function getFileName(Model $record): string
     {
+        /** @var BuyerOrder $record */
         return 'BuyerOrderSummary_' . ($record->order_number ?? $record->id) . '.pdf';
     }
 
@@ -35,21 +28,14 @@ class BuyerOrderSummaryPrintController extends BaseDocumentPrintController
         ];
     }
 
-    /**
-     * If your BaseDocumentPrintController supports paper options.
-     * If not, you can ignore/remove this method.
-     */
     protected function getPaper(): array
     {
         return ['A4', 'portrait'];
     }
 
-    /**
-     * ✅ Extra data for the Blade view (summary + factoryRows)
-     * Your BaseDocumentPrintController MUST call this and merge into view data.
-     */
-    protected function getExtraViewData($record): array
+    protected function getExtraViewData(Model $record): array
     {
+        /** @var BuyerOrder $record */
         $orderId = $record->id;
 
         $totalStyles = (int) $record->items->count();

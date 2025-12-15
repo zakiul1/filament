@@ -2,15 +2,15 @@
 
 namespace App\Livewire\Admin\Trade;
 
-use App\Models\BillOfExchange;
+use Livewire\Component;
 use App\Models\ExportBundle;
 use App\Models\ExportBundleDocument;
-use App\Models\NegotiationLetter;
+use App\Support\Trade\ExportBundleDocKeys;
+use Illuminate\Support\Carbon;
+
 use App\Models\PackingList;
-use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Livewire\Component;
+use App\Models\NegotiationLetter;
+use App\Models\BillOfExchange;
 
 class ExportBundleView extends Component
 {
@@ -20,182 +20,162 @@ class ExportBundleView extends Component
     {
         $this->exportBundle = $exportBundle->load([
             'commercialInvoice.customer',
-            'documents',
+            'documents.documentable',
         ]);
 
-        $this->syncRegistry(); // ✅ ONLY place registry is touched
+        // Ensure CI registry row exists (so bundle always shows CI as ready)
+        $this->ensureCommercialInvoiceRegistry();
     }
 
-    /**
-     * Ensure registry rows exist and CI status is correct
-     */
-    protected function syncRegistry(): void
+    private function refreshBundle(): void
     {
-        $expected = [
-            'commercial_invoice' => 'admin.trade.commercial-invoices.print',
-            'packing_list' => 'admin.trade.packing-lists.print',
-            'negotiation_letter' => 'admin.trade.negotiation-letters.print',
-            'boe_one' => 'admin.trade.bill-of-exchanges.print',
-            'boe_two' => 'admin.trade.bill-of-exchanges.print',
-        ];
-
-        foreach ($expected as $type => $route) {
-            ExportBundleDocument::updateOrCreate(
-                [
-                    'export_bundle_id' => $this->exportBundle->id,
-                    'document_type' => $type,
-                ],
-                [
-                    'print_route' => $route,
-                    'status' => 'missing',
-                ]
-            );
-        }
-
-        // Sync CI status once
-        $ci = $this->exportBundle->commercialInvoice;
-
-        ExportBundleDocument::updateOrCreate(
-            [
-                'export_bundle_id' => $this->exportBundle->id,
-                'document_type' => 'commercial_invoice',
-            ],
-            [
-                'document_id' => $ci?->id,
-                'status' => $ci ? 'ready' : 'missing',
-            ]
-        );
-
-        $this->exportBundle->load('documents');
+        $this->exportBundle->load([
+            'commercialInvoice.customer',
+            'documents.documentable',
+        ]);
     }
 
-    protected function setDoc(string $type, ?int $id): void
+    private function docRow(string $docKey): ?ExportBundleDocument
     {
-        ExportBundleDocument::updateOrCreate(
-            [
-                'export_bundle_id' => $this->exportBundle->id,
-                'document_type' => $type,
-            ],
-            [
-                'document_id' => $id,
-                'status' => $id ? 'ready' : 'missing',
-            ]
-        );
-
-        $this->exportBundle->load('documents');
+        return $this->exportBundle->documents->firstWhere('doc_key', $docKey);
     }
 
-    public function generatePackingList(): void
+    private function ensureCommercialInvoiceRegistry(): void
     {
         $ci = $this->exportBundle->commercialInvoice;
         if (!$ci)
             return;
 
-        $pl = PackingList::firstOrCreate(
-            ['commercial_invoice_id' => $ci->id],
-            [
-                'pl_number' => 'PL-' . now()->format('ymd') . '-' . Str::upper(Str::random(4)),
-                'pl_date' => now(),
-                'status' => 'draft',
-                'created_by' => Auth::id(),
-            ]
-        );
+        $exists = $this->docRow(ExportBundleDocKeys::COMMERCIAL_INVOICE);
+        if ($exists)
+            return;
 
-        $this->setDoc('packing_list', $pl->id);
+        $this->exportBundle->documents()->create([
+            'doc_key' => ExportBundleDocKeys::COMMERCIAL_INVOICE,
+            'documentable_type' => get_class($ci),
+            'documentable_id' => $ci->id,
+            'status' => 'generated',
+            'generated_at' => now(),
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+        ]);
+
+        $this->refreshBundle();
+    }
+
+    // -------------------------
+    // GENERATE DOCUMENTS
+    // -------------------------
+
+    public function generatePackingList(): void
+    {
+        $key = ExportBundleDocKeys::PACKING_LIST;
+        if ($this->docRow($key))
+            return;
+
+        $ci = $this->exportBundle->commercialInvoice;
+
+        // IMPORTANT: adjust fields to match your PackingList table required columns
+        $pl = PackingList::create([
+            'commercial_invoice_id' => $ci->id,
+            'packing_date' => now()->toDateString(),
+            'status' => 'draft',
+        ]);
+
+        $this->createRegistry($key, $pl->getMorphClass(), $pl->id);
     }
 
     public function generateNegotiationLetter(): void
     {
-        $ci = $this->exportBundle->commercialInvoice;
-        if (!$ci)
+        $key = ExportBundleDocKeys::NEGOTIATION_LETTER;
+        if ($this->docRow($key))
             return;
 
-        $nl = NegotiationLetter::firstOrCreate(
-            ['commercial_invoice_id' => $ci->id],
-            [
-                'letter_number' => 'NL-' . now()->format('ymd') . '-' . Str::upper(Str::random(4)),
-                'letter_date' => now(),
-                'invoice_amount' => $ci->total_amount,
-                'net_payable_amount' => $ci->total_amount,
-                'status' => 'draft',
-                'created_by' => Auth::id(),
-            ]
-        );
+        $ci = $this->exportBundle->commercialInvoice;
 
-        $this->setDoc('negotiation_letter', $nl->id);
+        // IMPORTANT: adjust fields to match your NegotiationLetter required columns
+        $nl = NegotiationLetter::create([
+            'commercial_invoice_id' => $ci->id,
+            'letter_date' => now()->toDateString(),
+            'status' => 'draft',
+        ]);
+
+        $this->createRegistry($key, $nl->getMorphClass(), $nl->id);
     }
 
     public function generateBoeOne(): void
     {
-        $ci = $this->exportBundle->commercialInvoice;
-        if (!$ci)
-            return;
-
-        $boe = BillOfExchange::firstOrCreate(
-            [
-                'commercial_invoice_id' => $ci->id,
-                'boe_type' => 'one',
-            ],
-            [
-                'boe_number' => 'BOE-1-' . now()->format('ymd') . '-' . Str::upper(Str::random(4)),
-                'issue_date' => now(),
-                'amount' => $ci->total_amount,
-                'status' => 'draft',
-                'created_by' => Auth::id(),
-            ]
-        );
-
-        $this->setDoc('boe_one', $boe->id);
+        $this->generateBoe('one', ExportBundleDocKeys::BOE_ONE);
     }
 
     public function generateBoeTwo(): void
     {
-        $ci = $this->exportBundle->commercialInvoice;
-        if (!$ci)
+        $this->generateBoe('two', ExportBundleDocKeys::BOE_TWO);
+    }
+
+    private function generateBoe(string $type, string $key): void
+    {
+        if ($this->docRow($key))
             return;
 
-        $boe = BillOfExchange::firstOrCreate(
-            [
-                'commercial_invoice_id' => $ci->id,
-                'boe_type' => 'two',
-            ],
-            [
-                'boe_number' => 'BOE-2-' . now()->format('ymd') . '-' . Str::upper(Str::random(4)),
-                'issue_date' => now(),
-                'amount' => $ci->total_amount,
-                'status' => 'draft',
-                'created_by' => Auth::id(),
-            ]
-        );
+        $ci = $this->exportBundle->commercialInvoice;
 
-        $this->setDoc('boe_two', $boe->id);
+        // IMPORTANT: adjust fields to match your BillOfExchange required columns
+        $boe = BillOfExchange::create([
+            'commercial_invoice_id' => $ci->id,
+            'boe_date' => now()->toDateString(),
+            'boe_type' => $type, // must be 'one' or 'two'
+            'status' => 'draft',
+        ]);
+
+        $this->createRegistry($key, $boe->getMorphClass(), $boe->id);
     }
 
-    public function generateAllMissing(): void
+    private function createRegistry(string $docKey, string $type, int $id): void
     {
-        $this->generatePackingList();
-        $this->generateNegotiationLetter();
-        $this->generateBoeOne();
-        $this->generateBoeTwo();
+        $this->exportBundle->documents()->create([
+            'doc_key' => $docKey,
+            'documentable_type' => $type,
+            'documentable_id' => $id,
+            'status' => 'generated',
+            'generated_at' => now(),
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+        ]);
+
+        $this->refreshBundle();
     }
 
-    public function render(): View
+    // -------------------------
+    // PRINT TRACKING
+    // -------------------------
+
+    public function markPrinted(string $docKey): void
     {
-        $docs = $this->exportBundle->documents
-            ->sortBy(fn($d) => match ($d->document_type) {
-                'commercial_invoice' => 1,
-                'packing_list' => 2,
-                'negotiation_letter' => 3,
-                'boe_one' => 4,
-                'boe_two' => 5,
-                default => 99,
-            })
-            ->values();
+        $row = $this->docRow($docKey);
+        if (!$row)
+            return;
+
+        $row->update([
+            'printed_at' => now(),
+            'print_count' => (int) ($row->print_count ?? 0) + 1,
+            'status' => 'printed',
+            'updated_by' => auth()->id(),
+        ]);
+
+        $this->refreshBundle();
+    }
+
+    public function render()
+    {
+        $docs = [];
+        foreach (ExportBundleDocKeys::required() as $key) {
+            $docs[$key] = $this->docRow($key);
+        }
 
         return view('livewire.admin.trade.export-bundle-view', [
-            'exportBundle' => $this->exportBundle,
-            'ci' => $this->exportBundle->commercialInvoice,
             'docs' => $docs,
+            'requiredKeys' => ExportBundleDocKeys::required(),
         ]);
     }
 }

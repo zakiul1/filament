@@ -3,24 +3,18 @@
 namespace App\Http\Controllers\Print;
 
 use App\Models\BuyerOrder;
+use Illuminate\Database\Eloquent\Model;
 
 class BuyerOrderPrintController extends BaseDocumentPrintController
 {
-    /**
-     * ✅ Keep compatibility with routes that call ->show()
-     */
-    public function show(BuyerOrder $buyerOrder)
-    {
-        return $this->__invoke($buyerOrder);
-    }
-
     protected function getView(): string
     {
         return 'pdf.buyer-order';
     }
 
-    protected function getFileName($record): string
+    protected function getFileName(Model $record): string
     {
+        /** @var BuyerOrder $record */
         return 'BuyerOrder_' . ($record->order_number ?? $record->id) . '.pdf';
     }
 
@@ -31,13 +25,5 @@ class BuyerOrderPrintController extends BaseDocumentPrintController
             'beneficiaryCompany',
             'items.allocations.factory',
         ];
-    }
-
-    /**
-     * Optional (only if your BaseDocumentPrintController supports this)
-     */
-    protected function getPaper(): array
-    {
-        return ['A4', 'portrait'];
     }
 }
