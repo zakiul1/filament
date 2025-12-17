@@ -201,6 +201,13 @@
                     {{ __('Export Bundles') }}
                 </flux:navlist.item>
 
+                {{-- ✅ Export Bundle Reports --}}
+                <flux:navlist.item icon="clipboard-document-list" :href="route('admin.trade.export-bundles.reports')"
+                    :current="request()->routeIs('admin.trade.export-bundles.reports')" wire:navigate>
+                    {{ __('Export Bundle Reports') }}
+                </flux:navlist.item>
+
+
             </flux:navlist.group>
 
 
@@ -316,6 +323,8 @@
     @fluxScripts
     @livewire('notifications')
     @filamentScripts
+
+    @stack('scripts')
 
 </body>
 

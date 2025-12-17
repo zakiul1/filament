@@ -18,7 +18,8 @@ return new class extends Migration {
             $table->string('doc_key', 30);
 
             // Polymorphic link to any document model
-            $table->morphs('documentable'); // documentable_type + documentable_id
+            $table->nullableMorphs('documentable');
+
 
             $table->string('status', 30)->default('draft'); // draft/generated/printed/archived
             $table->timestamp('generated_at')->nullable();

@@ -2,30 +2,28 @@
 
 namespace App\Http\Controllers\Print;
 
+use App\Http\Controllers\Controller;
 use App\Models\BillOfExchange;
-use Illuminate\Database\Eloquent\Model;
+use Barryvdh\DomPDF\Facade\Pdf;
 
-class BillOfExchangePrintController extends BaseDocumentPrintController
+class BillOfExchangePrintController extends Controller
 {
-    protected function getView(): string
+    public function show(BillOfExchange $billOfExchange)
     {
-        return 'pdf.bill-of-exchange';
-    }
-
-    protected function getFileName(Model $record): string
-    {
-        /** @var BillOfExchange $record */
-        return 'BOE_' . ($record->boe_number ?? $record->id) . '.pdf';
-    }
-
-    protected function getRelations(): array
-    {
-        return [
+        $boe = $billOfExchange->load([
             'customer.country',
             'beneficiaryCompany',
             'currency',
             'lcReceive',
             'commercialInvoice',
-        ];
+        ]);
+
+        $pdf = Pdf::loadView('pdf.bill-of-exchange', [
+            'boe' => $boe,
+        ])->setPaper('A4', 'portrait');
+
+        $filename = 'BOE_' . ($boe->boe_number ?? $boe->id) . '.pdf';
+
+        return $pdf->stream($filename);
     }
 }

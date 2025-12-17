@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Print\ExportBundlePrintAllController;
+use App\Livewire\Admin\Trade\ExportBundleReportsPage;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -297,6 +298,16 @@ Route::middleware(['auth'])
                 ->name('export-bundles.print-all');
 
 
+            // ✅ Shipments
+            Route::get('/shipments', \App\Livewire\Admin\Trade\ShipmentsPage::class)->name('shipments.index');
+            Route::get('/shipments/create', \App\Livewire\Admin\Trade\ShipmentCreate::class)->name('shipments.create');
+            Route::get('/shipments/{shipment}/edit', \App\Livewire\Admin\Trade\ShipmentEdit::class)->name('shipments.edit');
+
+            // inside Route::prefix('trade')->name('trade.')->group(...)
+            Route::get('/export-bundles/reports', ExportBundleReportsPage::class)
+                ->name('export-bundles.reports');
+
+
         });
 
         /*
@@ -325,5 +336,7 @@ Route::middleware(['auth'])
 
             Route::get('/buyer-orders/{buyerOrder}/factory-allocation/print', [BuyerOrderFactoryAllocationPrintController::class, 'show'])
                 ->name('buyer-orders.factory-allocation.print');
+
+
         });
     });

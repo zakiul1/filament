@@ -119,7 +119,8 @@ class ExportBundleCreate extends Component implements HasSchemas
             return $bundle;
         });
 
-        $this->redirectRoute('admin.trade.export-bundles.show', ['record' => $bundle->id], navigate: true);
+        $this->redirectRoute('admin.trade.export-bundles.show', ['exportBundle' => $bundle->id], navigate: true);
+
     }
 
     public function render(): View
