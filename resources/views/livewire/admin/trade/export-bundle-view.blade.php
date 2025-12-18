@@ -21,10 +21,24 @@
         <div class="mx-auto max-w-7xl space-y-4 sm:px-6 lg:px-8">
 
             {{-- TOP BAR --}}
+            @php
+                $isClosed = (bool) $exportBundle->closed_at;
+            @endphp
+
             <div
                 class="flex items-start justify-between rounded-xl bg-white p-4 shadow-sm dark:bg-zinc-900 dark:ring-1 dark:ring-zinc-700">
                 <div>
-                    <h2 class="text-lg font-semibold">Export Bundle: {{ $exportBundle->bundle_no }}</h2>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-lg font-semibold">Export Bundle: {{ $exportBundle->bundle_no }}</h2>
+
+                        @if ($isClosed)
+                            <span
+                                class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-200">
+                                CLOSED
+                            </span>
+                        @endif
+                    </div>
+
                     <p class="mt-1 text-sm text-zinc-500">
                         Customer: {{ optional($exportBundle->commercialInvoice?->customer)->name ?? '—' }}
                     </p>
@@ -43,33 +57,93 @@
                             @endif
                         </p>
                     @endif
+
+                    @if ($isClosed)
+                        <p class="mt-1 text-sm text-red-600">
+                            Closed: {{ $exportBundle->closed_at->format('Y-m-d H:i') }}
+                            @if ($exportBundle->closedBy)
+                                • By: {{ $exportBundle->closedBy->name }}
+                            @endif
+                        </p>
+
+                        @if (!empty($exportBundle->close_notes))
+                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                                <span class="font-semibold">Notes:</span> {{ $exportBundle->close_notes }}
+                            </p>
+                        @endif
+                    @endif
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 justify-end">
 
                     {{-- Print All ZIP --}}
                     @if ($allReady)
-                        <flux:button type="button" variant="ghost"
-                            onclick="window.location.href='{{ route('admin.trade.export-bundles.print-all', ['exportBundle' => $exportBundle->id]) }}'">
-                            Print All (ZIP)
-                        </flux:button>
-                    @endif
-
-                    {{-- Lock / Unlock --}}
-                    @if (!$isLocked && !$isSubmitted)
-                        <flux:button wire:click="lockBundle" variant="primary">
-                            Finalize / Lock
-                        </flux:button>
-                    @else
-                        @if (auth()->user()?->hasRole('SUPER_ADMIN') && !$isSubmitted)
-                            <flux:button wire:click="unlockBundle" variant="ghost">
-                                Unlock
+                        @if (!$isClosed)
+                            <flux:button type="button" variant="ghost"
+                                onclick="window.location.href='{{ route('admin.trade.export-bundles.print-all', ['exportBundle' => $exportBundle->id]) }}'">
+                                Print All (ZIP)
+                            </flux:button>
+                        @else
+                            <flux:button type="button" variant="ghost" disabled>
+                                Print All (ZIP)
                             </flux:button>
                         @endif
                     @endif
 
+                    {{-- Step 10: Close / Reopen --}}
+                    @if (!$isClosed)
+                        @if (auth()->user()?->hasRole('ADMIN') || auth()->user()?->hasRole('SUPER_ADMIN'))
+                            {{-- Close Notes + Close Button --}}
+                            <div class="flex items-center gap-2">
+                                <input type="text"
+                                    class="rounded-lg border px-3 py-2 text-sm dark:bg-zinc-800 dark:border-zinc-700"
+                                    placeholder="Close notes (optional)" wire:model.defer="close_notes"
+                                    {{ !$isSubmitted ? 'disabled' : '' }} />
+
+                                @if ($isSubmitted)
+                                    <flux:button wire:click="closeBundle" variant="primary" wire:loading.attr="disabled"
+                                        wire:target="closeBundle">
+                                        <span wire:loading.remove wire:target="closeBundle">Close Bundle</span>
+                                        <span wire:loading wire:target="closeBundle">Closing...</span>
+                                    </flux:button>
+                                @else
+                                    <flux:button variant="primary" disabled>
+                                        Close Bundle
+                                    </flux:button>
+                                @endif
+                            </div>
+                        @endif
+                    @else
+                        @if (auth()->user()?->hasRole('SUPER_ADMIN'))
+                            <flux:button wire:click="reopenBundle" variant="ghost" wire:loading.attr="disabled"
+                                wire:target="reopenBundle">
+                                <span wire:loading.remove wire:target="reopenBundle">Reopen</span>
+                                <span wire:loading wire:target="reopenBundle">Reopening...</span>
+                            </flux:button>
+                        @endif
+                    @endif
+
+                    {{-- Lock / Unlock --}}
+                    @if (!$isClosed)
+                        @if (!$isLocked && !$isSubmitted)
+                            <flux:button wire:click="lockBundle" variant="primary" wire:loading.attr="disabled"
+                                wire:target="lockBundle">
+                                <span wire:loading.remove wire:target="lockBundle">Finalize / Lock</span>
+                                <span wire:loading wire:target="lockBundle">Locking...</span>
+                            </flux:button>
+                        @else
+                            @if (auth()->user()?->hasRole('SUPER_ADMIN') && !$isSubmitted)
+                                <flux:button wire:click="unlockBundle" variant="ghost" wire:loading.attr="disabled"
+                                    wire:target="unlockBundle">
+                                    <span wire:loading.remove wire:target="unlockBundle">Unlock</span>
+                                    <span wire:loading wire:target="unlockBundle">Unlocking...</span>
+                                </flux:button>
+                            @endif
+                        @endif
+                    @endif
+
                     {{-- BANK SUBMISSION --}}
-                    @if ($isLocked)
+                    @if (!$isClosed && $isLocked)
                         @if (!$isSubmitted)
                             <div class="flex items-center gap-2">
                                 <input type="text"
@@ -79,20 +153,27 @@
                                 <input type="file" class="text-sm" wire:model="bank_ack_file"
                                     accept="application/pdf" />
 
-                                <flux:button wire:click="submitToBank" variant="primary">
-                                    Submit to Bank
+                                <flux:button wire:click="submitToBank" variant="primary" wire:loading.attr="disabled"
+                                    wire:target="submitToBank,bank_ack_file">
+                                    <span wire:loading.remove wire:target="submitToBank,bank_ack_file">Submit to
+                                        Bank</span>
+                                    <span wire:loading wire:target="submitToBank,bank_ack_file">Submitting...</span>
                                 </flux:button>
                             </div>
                         @else
                             @if ($exportBundle->bank_ack_file_path)
-                                <flux:button wire:click="downloadBankAck" variant="ghost">
-                                    Download Bank Ack
+                                <flux:button wire:click="downloadBankAck" variant="ghost" wire:loading.attr="disabled"
+                                    wire:target="downloadBankAck">
+                                    <span wire:loading.remove wire:target="downloadBankAck">Download Bank Ack</span>
+                                    <span wire:loading wire:target="downloadBankAck">Preparing...</span>
                                 </flux:button>
                             @endif
 
                             @if (auth()->user()?->hasRole('SUPER_ADMIN'))
-                                <flux:button wire:click="unsubmitFromBank" variant="ghost">
-                                    Unsubmit
+                                <flux:button wire:click="unsubmitFromBank" variant="ghost" wire:loading.attr="disabled"
+                                    wire:target="unsubmitFromBank">
+                                    <span wire:loading.remove wire:target="unsubmitFromBank">Unsubmit</span>
+                                    <span wire:loading wire:target="unsubmitFromBank">Reverting...</span>
                                 </flux:button>
                             @endif
                         @endif
@@ -100,6 +181,7 @@
 
                 </div>
             </div>
+
 
             {{-- LOCK ERRORS --}}
             @if (!empty($lockErrors))
@@ -153,23 +235,40 @@
                             {{-- Generate --}}
                             @if ($canGenerate && !$disableGenerate)
                                 @if ($key === \App\Support\Trade\ExportBundleDocKeys::PACKING_LIST)
-                                    <flux:button wire:click="generatePackingList" variant="primary">Generate
+                                    <flux:button wire:click="generatePackingList" variant="primary"
+                                        wire:loading.attr="disabled" wire:target="generatePackingList">
+                                        <span wire:loading.remove wire:target="generatePackingList">Generate</span>
+                                        <span wire:loading wire:target="generatePackingList">Generating...</span>
                                     </flux:button>
                                 @elseif ($key === \App\Support\Trade\ExportBundleDocKeys::NEGOTIATION_LETTER)
-                                    <flux:button wire:click="generateNegotiationLetter" variant="primary">Generate
+                                    <flux:button wire:click="generateNegotiationLetter" variant="primary"
+                                        wire:loading.attr="disabled" wire:target="generateNegotiationLetter">
+                                        <span wire:loading.remove
+                                            wire:target="generateNegotiationLetter">Generate</span>
+                                        <span wire:loading wire:target="generateNegotiationLetter">Generating...</span>
                                     </flux:button>
                                 @elseif ($key === \App\Support\Trade\ExportBundleDocKeys::BOE_ONE)
-                                    <flux:button wire:click="generateBoeOne" variant="primary">Generate</flux:button>
+                                    <flux:button wire:click="generateBoeOne" variant="primary"
+                                        wire:loading.attr="disabled" wire:target="generateBoeOne">
+                                        <span wire:loading.remove wire:target="generateBoeOne">Generate</span>
+                                        <span wire:loading wire:target="generateBoeOne">Generating...</span>
+                                    </flux:button>
                                 @elseif ($key === \App\Support\Trade\ExportBundleDocKeys::BOE_TWO)
-                                    <flux:button wire:click="generateBoeTwo" variant="primary">Generate</flux:button>
+                                    <flux:button wire:click="generateBoeTwo" variant="primary"
+                                        wire:loading.attr="disabled" wire:target="generateBoeTwo">
+                                        <span wire:loading.remove wire:target="generateBoeTwo">Generate</span>
+                                        <span wire:loading wire:target="generateBoeTwo">Generating...</span>
+                                    </flux:button>
                                 @endif
                             @endif
 
                             {{-- Print --}}
                             @if ($row && $row->documentable_id)
                                 <flux:button type="button" variant="primary"
-                                    wire:click="printDoc('{{ $key }}')">
-                                    Print
+                                    wire:click="printDoc('{{ $key }}')" wire:loading.attr="disabled"
+                                    wire:target="printDoc">
+                                    <span wire:loading.remove wire:target="printDoc">Print</span>
+                                    <span wire:loading wire:target="printDoc">Opening...</span>
                                 </flux:button>
                             @endif
                         </div>
@@ -187,30 +286,49 @@
                             Track courier dispatch and bank acceptance for this bundle.
                         </div>
                     </div>
-
                     <div class="flex flex-wrap items-center gap-2 justify-end">
+                        {{-- Courier --}}
                         <div class="flex items-center gap-2">
                             <input type="text"
                                 class="rounded-lg border px-3 py-2 text-sm dark:bg-zinc-800 dark:border-zinc-700"
                                 placeholder="Courier Ref (optional)" wire:model.defer="courier_ref"
                                 @if (!$isSubmitted) disabled @endif />
 
-                            <flux:button wire:click="markCouriered" variant="primary" :disabled="!$isSubmitted">
-                                Mark Couriered
-                            </flux:button>
+                            @if ($isSubmitted)
+                                <flux:button wire:click="markCouriered" variant="primary"
+                                    wire:loading.attr="disabled" wire:target="markCouriered">
+                                    <span wire:loading.remove wire:target="markCouriered">Mark Couriered</span>
+                                    <span wire:loading wire:target="markCouriered">Saving...</span>
+                                </flux:button>
+                            @else
+                                <flux:button variant="primary" disabled>
+                                    Mark Couriered
+                                </flux:button>
+                            @endif
                         </div>
 
+                        {{-- Bank Accepted --}}
                         <div class="flex items-center gap-2">
                             <input type="text"
                                 class="rounded-lg border px-3 py-2 text-sm dark:bg-zinc-800 dark:border-zinc-700"
                                 placeholder="Bank Ref / Ack No (optional)" wire:model.defer="bank_ref"
                                 @if (!$isSubmitted) disabled @endif />
 
-                            <flux:button wire:click="markBankAccepted" variant="primary" :disabled="!$isSubmitted">
-                                Mark Bank Accepted
-                            </flux:button>
+                            @if ($isSubmitted)
+                                <flux:button wire:click="markBankAccepted" variant="primary"
+                                    wire:loading.attr="disabled" wire:target="markBankAccepted">
+                                    <span wire:loading.remove wire:target="markBankAccepted">Mark Bank Accepted</span>
+                                    <span wire:loading wire:target="markBankAccepted">Saving...</span>
+                                </flux:button>
+                            @else
+                                <flux:button variant="primary" disabled>
+                                    Mark Bank Accepted
+                                </flux:button>
+                            @endif
                         </div>
                     </div>
+
+
                 </div>
 
                 @if (!$isSubmitted)

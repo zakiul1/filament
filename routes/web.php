@@ -293,6 +293,9 @@ Route::middleware(['auth'])
             // ✅ Export Bundles
             Route::get('/export-bundles', ExportBundlesPage::class)->name('export-bundles.index');
             Route::get('/export-bundles/create', ExportBundleCreate::class)->name('export-bundles.create');
+            // inside Route::prefix('trade')->name('trade.')->group(...)
+            Route::get('/export-bundles/reports', ExportBundleReportsPage::class)
+                ->name('export-bundles.reports');
             Route::get('/export-bundles/{exportBundle}', ExportBundleView::class)->name('export-bundles.show');
             Route::get('/export-bundles/{exportBundle}/print-all', [ExportBundlePrintAllController::class, 'zip'])
                 ->name('export-bundles.print-all');
@@ -303,9 +306,7 @@ Route::middleware(['auth'])
             Route::get('/shipments/create', \App\Livewire\Admin\Trade\ShipmentCreate::class)->name('shipments.create');
             Route::get('/shipments/{shipment}/edit', \App\Livewire\Admin\Trade\ShipmentEdit::class)->name('shipments.edit');
 
-            // inside Route::prefix('trade')->name('trade.')->group(...)
-            Route::get('/export-bundles/reports', ExportBundleReportsPage::class)
-                ->name('export-bundles.reports');
+
 
 
         });

@@ -19,9 +19,9 @@ class ExportBundle extends Model
         'submission_ref',
         'bank_ack_file_path',
 
-        // if you already added Step 9 fields:
-        // 'closed_at',
-        // 'closed_by',
+        'closed_at',
+        'closed_by',
+        'close_notes',
 
         'created_by',
         'updated_by',
@@ -31,7 +31,7 @@ class ExportBundle extends Model
         'bundle_date' => 'date',
         'locked_at' => 'datetime',
         'submitted_at' => 'datetime',
-        // 'closed_at' => 'datetime',
+        'closed_at' => 'datetime',
     ];
 
     public function commercialInvoice()
@@ -81,5 +81,14 @@ class ExportBundle extends Model
     public function isSubmitted(): bool
     {
         return !is_null($this->submitted_at);
+    }
+    public function closedBy()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'closed_by');
+    }
+
+    public function isClosed(): bool
+    {
+        return !is_null($this->closed_at);
     }
 }

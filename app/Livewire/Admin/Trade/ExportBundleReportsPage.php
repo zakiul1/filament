@@ -2,31 +2,37 @@
 
 namespace App\Livewire\Admin\Trade;
 
+use Filament\Schemas\Contracts\HasSchemas;
 use Livewire\Component;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+
+use Filament\Actions\Action;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+
+use Filament\Support\Contracts\TranslatableContentDriver;
 
 use Filament\Tables\Table;
-use Filament\Tables;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Concerns\InteractsWithTable;
+
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
-
-use Filament\Actions\Action;
-use Filament\Support\Contracts\TranslatableContentDriver;
-
-use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 
 use App\Models\ExportBundle;
 use App\Models\ExportBundleEvent;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
 
-class ExportBundleReportsPage extends Component implements HasTable
+class ExportBundleReportsPage extends Component implements HasTable, HasActions, HasSchemas
 {
     use InteractsWithTable;
+    use InteractsWithActions;
+    use InteractsWithSchemas;
 
-    // ✅ Fix for: must implement makeFilamentTranslatableContentDriver
+    // ✅ Required in your project pattern (same as other pages)
     public function makeFilamentTranslatableContentDriver(): ?TranslatableContentDriver
     {
         return null;
