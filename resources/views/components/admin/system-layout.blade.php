@@ -35,6 +35,7 @@
 
     {{-- Card with full-width content under the tabs --}}
     <section class="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+
         {{ $slot }}
     </section>
 </div>

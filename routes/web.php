@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Print\ExportBundlePrintAllController;
+use App\Livewire\Admin\Master\BankAccounts\BankAccountCreate;
+use App\Livewire\Admin\Master\BankAccounts\BankAccountEdit;
+use App\Livewire\Admin\Master\BankAccounts\BankAccountsPage;
 use App\Livewire\Admin\Trade\ExportBundleReportsPage;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -181,6 +184,10 @@ Route::middleware(['auth'])
                 ->name('beneficiary-companies.index');
             Route::get('/beneficiary-bank-accounts', BeneficiaryBankAccountsPage::class)
                 ->name('beneficiary-bank-accounts.index');
+
+            Route::get('/bank-accounts', BankAccountsPage::class)->name('bank-accounts.index');
+            Route::get('/bank-accounts/create', BankAccountCreate::class)->name('bank-accounts.create');
+            Route::get('/bank-accounts/{bankAccount}/edit', BankAccountEdit::class)->name('bank-accounts.edit');
 
             Route::get('/couriers', CouriersPage::class)->name('couriers.index');
             Route::get('/customers', CustomersPage::class)->name('customers.index');
